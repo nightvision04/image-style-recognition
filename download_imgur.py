@@ -1,9 +1,6 @@
 
 # coding: utf-8
 
-# In[97]:
-
-
 import requests
 import json
 import urllib
@@ -62,25 +59,18 @@ class Image():
         if self.format=='jpg':
             filepath = 'imgur/images/'+self.id+'.jpg'
             response = requests.get(self.url_small)
+            print(filepath)
             if response.status_code == 200:
                 with open(filepath, 'wb') as f:
                     f.write(response.content)
 
-
-
-
-
         return self
-
 
 
 clientId='67009bcf62d03cf'
 
-
-
 for i in range(1,5000):
 
-    query = 'people'
     url = 'https://api.imgur.com/3/gallery/search/{{sort}}/{{window}}/{}?q=people'.format(i)
     payload = {}
     headers = {
@@ -99,7 +89,7 @@ for i in range(1,5000):
                 #Do something
 
                 url = response.json()['data'][j]['images'][0]['link']
-                id = response.json()['data'][j]['id']
+                id = response.json()['data'][j]['images'][0]['link'].split('https://i.imgur.com/')[1].split('.jpg')[0]
                 width = response.json()['data'][j]['cover_width']
                 height = response.json()['data'][j]['cover_height']
 
@@ -110,11 +100,6 @@ for i in range(1,5000):
 
         except Exception as e:
             print(e)
-
-
-
-
-
 
 
     time.sleep(90)
