@@ -18,7 +18,7 @@
     <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Roboto:300,300italic,400" />
 
     <script>(function(e,t,n){var r=e.querySelectorAll("html")[0];r.className=r.className.replace(/(^|\s)no-js(\s|$)/,"$1js$2")})(document,window,0);</script>
-  
+
 
 
 
@@ -27,14 +27,11 @@
   <body>
 
 
-
+    {% include 'includes/_style.html' %}
     {% include 'includes/_navbar.html' %}
 
 
-
     <div class="container" role='main'>
-
-
 
 
     {% block body %}{% endblock %}
@@ -51,12 +48,6 @@
     <script type="text/javascript" src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js"></script>
     <!-- <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.6.1/js/mdb.min.js"></script> -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.4.0/Chart.min.js"></script>
-
-
-
-
-    {% include 'includes/_style.html' %}
-    {% include 'includes/_charts.html' %}
 
 
 </body>
