@@ -1,3 +1,7 @@
 unsplash/images/_es6l-aPDA0.jpg
 unsplash/
 imgur/
+.ipynb_checkpoints/
+__pycache__/
+Untitled.ipynb
+models/bgr_quality.pickle

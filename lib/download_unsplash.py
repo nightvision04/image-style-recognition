@@ -1,14 +1,14 @@
 
 # coding: utf-8
 
-# In[97]:
-
-
 import requests
 import json
 import urllib
 import time
 
+import os
+access_key =os.environ['unsplash_access_key']
+secret_key =os.environ['unsplash_secret_key']
 
 class Image():
 
@@ -66,10 +66,6 @@ class Image():
         return self
 
 
-
-access_key = '31ee1eb531e43c16e7a2b34bfee6bdc11948b6431e89a78f1fb36c476a71ccab'
-secret_key = 'eb92f7dd0889a7beea3ca0befdfa32f1f11dea4d98bacc292a8ca9a8a0f828dc'
-
 query = 'people'
 
 for i in range(1,5000):
@@ -88,7 +84,4 @@ for i in range(1,5000):
         img.download()
 
 
-    time.sleep(90)
-
-
-# In[99]:
+    time.sleep(90) # Rate-limit is 60
