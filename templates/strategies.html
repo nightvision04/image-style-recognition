@@ -1,0 +1,141 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+
+
+
+
+
+
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+    <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
+      <br><br>
+      <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom" >
+        <h1 class="h2">Dashboard - Strategies</h1>
+      </div><br>
+
+      <div id="contain">
+      <div class="chart-container bottom-buffer_30 top-buffer_20" style="position: relative; height:25vh; width:30vw; float: left;">
+        <canvas class="main_chart_container" id="horizontalBar" style="float: left; margin-left:1em"></canvas></div>
+
+        <div class="chart-container bottom-buffer_30 top-buffer_20" style="position: relative; height:25vh; width:38vw; float: left;">
+          <canvas class="main_chart_container_" id="queue_speed_chart" style="float: left; margin-left:5em"></canvas></div>
+
+      </div>
+
+
+      <div id="table-box">
+      </div>
+
+
+
+      <!-- Update dashboard charts -->
+      <script type='text/javascript'>
+
+
+        (function worker_strat() {
+      $.get('/strategy_completion_chart.json', function(value) {
+
+        val__ = JSON.parse(value)
+        val_1= val_1+1;
+
+        // Only slow animations if they have been around a while > 2*3 seconds
+        if (val_1 > 2){
+          strategy_completion_chart.options.animation.duration = 10000;
+          queue_speed.options.animation.duration = 10000;
+          // Update chart size to 10% larger than the largest value
+
+        }
+
+
+
+        strategy_completion_chart.data.datasets[0].data[0] = val__["percent_learned_within_24"];
+        strategy_completion_chart.data.datasets[0].data[1] = val__["percent_learned_within_48"];
+        strategy_completion_chart.update();
+
+
+        queue_speed.data.datasets[0].data[1] = val__["learning_rate_hourly"];
+        queue_speed.data.datasets[0].data[0] = val__["queued_eventnames_last_hour_average_time"];
+        queue_speed.data.datasets[0].data[2] = val__["required_average_learning_rate"];
+
+        // Re-adjust chart to a nice size based on max values
+        var max_ = Math.max(val__["learning_rate_hourly"], val__["queued_eventnames_last_hour_average_time"], val__["required_average_learning_rate"])*1.1;
+        max_ = Math.ceil(max_ / 10) * 10;
+        queue_speed.options.scales.xAxes[0].ticks['max'] = max_;
+        queue_speed.update();
+
+        t = setTimeout(worker_strat, 3000);
+      });
+      })();
+
+      val_1 = 0;
+
+      </script>
+
+
+
+
+
+
+    <script type='text/javascript'>
+      (function worker_strat() {
+    $.get('/strategies.json', function(value) {
+
+      val__ = JSON.parse(value)
+      var headers = [];
+      rows =0;
+      for(const [key, value] of Object.entries(val__)) {
+        for(const [key_, value_] of Object.entries(val__[key])) {
+          rows = rows+1;
+        }
+        break;
+      }
+
+      // Declare table dimensions
+      cols = val__.length;
+
+      var field ="";
+
+      field +=
+      field += "<div class='table-responsive'>";
+      field += "<table class='table table-striped table-sm'>";
+      field += "<thead>";
+      field += "<tr>";
+
+      // Build out column headers
+      for(const [key, value] of Object.entries(val__)){
+          field += "<th> " + key + "</th>";
+      }
+      field += "</tr>";
+
+      field += "<tbody>";
+      for(i = 0; i < rows; i++){
+          field += "<tr>";
+          for(const [key, value] of Object.entries(val__)){
+
+                field += "<td> " + val__[key][i] + "</td>";
+          }
+          field += "</tr>";
+      }
+
+      field += "</tbody>";
+      field += "</table>";
+      field +="</div>";
+      field +="</main>";
+
+
+      // Now that we've completed the request schedule the next one.
+      $('#table-box').html(field);
+      t = setTimeout(worker_strat, 30000);
+    });
+  })();
+
+    // setInterval(function(){
+    //     $("#table-box").load("/home.json");
+    // },1000);
+    </script>
+
+
+
+
+{% endblock %}

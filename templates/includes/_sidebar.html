@@ -1,0 +1,83 @@
+<!--
+
+              <div class="card text-white bg-danger mb-3" style="max-width: 18rem;">
+              <div class="card-header">Header asdfer asdfer asdfer asdfer asdfer asdfer asdfer asdf </div>
+              </div>
+
+              <div class="card text-white bg-danger mb-3" style="max-width: 18rem;"><div class="card-header">Header asdfer asdfer asdfer asdfer asdfer asdfer asdfer asdf </div>
+              </div>
+
+              <div class="card border-success mb-3" style="max-width: 18rem;"><div class="card-header">Sent Trade - Gross Domestic Product Italy</div></div>
+
+
+              <div class="card text-white bg-dark mb-3" style="max-width: 18rem;"><div class="card-header">Dark Gray</div></div>
+
+              <div class="card text-white bg-danger mb-3" style="max-width: 18rem;">
+              <div class="card-header">Header asdfer asdfer asdfer asdfer asdfer asdfer asdfer asdf </div>
+              </div>
+              <div class="card text-white bg-danger mb-3" style="max-width: 18rem;">
+              <div class="card-header">Header asdfer asdfer asdfer asdfer asdfer asdfer asdfer asdf </div>
+              </div>
+              <div class="card text-white bg-danger mb-3" style="max-width: 18rem;">
+              <div class="card-header">Header asdfer asdfer asdfer asdfer asdfer asdfer asdfer asdf </div>
+              </div> -->
+
+
+
+
+
+
+        <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+        <nav class="col-md-2 d-none d-md-block bg-light sidebar">
+        <div class="sidebar-sticky">
+        <ul class="nav flex-column">
+
+
+              <div id="sidebar-box"><br><br><br><br><br>
+                <p>Recent activity is unavailable.</p>
+              </div>
+
+        </ul>
+        </div>
+        </nav>
+
+
+
+
+            <script type='text/javascript'>
+              (function worker_sidebar() {
+            $.get('/sidebar.json', function(value) {
+
+
+
+              val__ = JSON.parse(value)
+
+
+              // Define row length in dict
+              var headers = [];
+              rows =0;
+              for(const [key, value] of Object.entries(val__)) {
+                for(const [key_, value_] of Object.entries(val__[key])) {
+                  rows = rows+1;
+                }
+                break;
+              }
+              // Declare table dimensions
+              cols = val__.length;
+
+              var field ="";
+
+              field += "<h6 class='sidebar-header-1 text-center bold text-red'><b>Notifications</b></h6>";
+
+              for(i = 0; i < rows; i++){
+                  for(const [key, value] of Object.entries(val__)){
+                        field += val__[key][i];
+                  }
+              }
+
+              $('#sidebar-box').html(field);
+              t_sidebar = setTimeout(worker_sidebar, 3000);
+            });
+          })();
+
+            </script>
