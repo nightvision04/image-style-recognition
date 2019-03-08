@@ -5,3 +5,4 @@ imgur/
 __pycache__/
 Untitled.ipynb
 models/bgr_quality.pickle
+models/quality_model.pickle

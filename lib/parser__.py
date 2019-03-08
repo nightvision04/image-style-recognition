@@ -1,19 +1,32 @@
 import model_creator as mc
 import cv2
 import numpy as np
+import time
 
-
-
-class Model:
-
-    def __init__(self,file):
-        self.quality_model = mc.load_model('../models/bgr_quality.pickle')
-        print('Quality model loaded')
 
 class ImageParser:
 
     def __init__(self):
-        pass
+        from sklearn.externals import joblib
+
+        self.quality_model = joblib.load('../models/quality_model.pickle')
+        print('Quality model loaded')
+
+    def shrink(self):
+        '''
+        Divide current size by 100 to find reduce-factor
+        '''
+
+        if self.orientation == 'landscape':
+            factor = 100 / self.height
+        if self.orientation == 'portrait':
+            factor = 100 / self.width
+        if self.orientation == 'square':
+            factor = 100 / self.width # Can be height or width
+
+        self.img = cv2.resize(self.img,None,fx=factor, fy=factor, interpolation = cv2.INTER_CUBIC)
+
+        return self
 
     def convolution_strips(self,operation_dict):
         '''
@@ -97,18 +110,19 @@ class ImageParser:
                             'img':img,
                             'table':None,
                             })
+        print('Loaded {}'.format(filepath))
 
         probability_series = []
 
+        t1=time.time()
         for i in range(len(self.x)):
-            result = model.quality_model.predict(x[i])
+
+            result = self.quality_model.predict([self.x[i]])
             probability_series.append(result)
             bin_count=i
-
+        t2=time.time()
+        print ("{} seconds".format(t2-t1))
         probability_series = np.array(probability_series)
         result = (np.sum(probability_series) / bin_count)
         print("Predicted {0} across {1} scans".format(result,bin_count))
         return result
-
-# Load model on startup
-model = Model()

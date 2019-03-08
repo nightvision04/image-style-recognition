@@ -7,6 +7,7 @@ from lib import connections as con
 import parser as p
 
 
+
 class ImageData(p.ImageParser):
     '''This will hold the main frame data in between each loop of the fill function
     '''
