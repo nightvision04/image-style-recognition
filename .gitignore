@@ -6,3 +6,4 @@ __pycache__/
 Untitled.ipynb
 models/bgr_quality.pickle
 models/quality_model.pickle
+lib/static/images/downloads/

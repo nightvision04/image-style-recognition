@@ -37,7 +37,7 @@ class ImageData(p.ImageParser):
 
     def shrink(self):
         '''
-        Divide current size by 200 to find factor to reduce by
+        Divide current size by 100 to find factor to reduce by
         '''
 
         if self.orientation == 'landscape':
@@ -48,6 +48,7 @@ class ImageData(p.ImageParser):
             factor = 100 / self.width # Can be height or width
 
         self.img = cv2.resize(self.img,None,fx=factor, fy=factor, interpolation = cv2.INTER_CUBIC)
+
 
         return self
 

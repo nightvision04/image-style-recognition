@@ -13,7 +13,10 @@
 
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.1/css/all.css">
       <!-- Bootstrap core CSS -->
+
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" rel="stylesheet">
+
+
 
     <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Roboto:300,300italic,400" />
 
@@ -25,7 +28,10 @@
 
 
     {% include 'includes/_style.html' %}
+    {% include 'includes/_style_lightbox.html' %}
     {% include 'includes/_navbar.html' %}
+
+
 
 
     <div class="container" role='main'>
@@ -36,7 +42,7 @@
     </div>
 
 
-    {% include 'includes/_page_scripts.html' %}
+
 
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.js"></script>
       <!-- Bootstrap tooltips -->
@@ -45,6 +51,14 @@
     <script type="text/javascript" src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js"></script>
     <!-- <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.6.1/js/mdb.min.js"></script> -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.4.0/Chart.min.js"></script>
+
+    <!-- For lightboxes -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ekko-lightbox/5.2.0/ekko-lightbox.min.js"></script>
+
+
+
+
+    {% include 'includes/_page_scripts.html' %}
 
 
 </body>

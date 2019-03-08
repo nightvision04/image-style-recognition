@@ -28,6 +28,8 @@ class ImageParser:
 
         return self
 
+
+
     def convolution_strips(self,operation_dict):
         '''
         Split each section into the image into a 1d array and insert as training data
@@ -53,6 +55,8 @@ class ImageParser:
         if (self.width / self.height) == 1:
             self.orientation = 'square'
         self.shrink()
+
+
 
         # Redefine size after shrinking image
         self.width = len(self.img[0])
@@ -111,6 +115,10 @@ class ImageParser:
                             'table':None,
                             })
         print('Loaded {}'.format(filepath))
+
+        
+        thumbpath = 'static/images/downloads/thumbs/' + filepath.split('static/images/downloads/')[1]
+        cv2.imwrite(thumbpath,self.img)
 
         probability_series = []
 
