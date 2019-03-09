@@ -98,6 +98,7 @@ def _home_():
 
 
         session['images'],html = vc.gallery_view_html(session['images'],'quality')
+        
         return html
 
     if request.method == "GET":

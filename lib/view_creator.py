@@ -12,6 +12,7 @@ def gallery_view_html(session,sort_method):
     df['filepaths'] = arr[:,1]
     df['filepaths_thumb'] = arr[:,2]
     df = df.sort_values(by=sort_method,ascending=False)
+    df = df.drop_duplicates(subset='filepaths', keep="last")
 
     quality = df['quality'].values
     filepaths = df['filepaths'].values
@@ -47,5 +48,6 @@ $(document).on("click", '[data-toggle="lightbox"]', function(event) {
 </script>
         '''
 
+    session = [[quality[i],filepaths[i],filepaths_thumb[i]] for i in range(len(quality))]
 
     return session,html

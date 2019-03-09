@@ -4,6 +4,7 @@ import numpy as np
 import time
 import connections as con
 
+
 class ImageParser:
 
     def __init__(self):
@@ -124,6 +125,8 @@ class ImageParser:
 
         t1=time.time()
         for i in range(len(self.x)):
+
+
 
             result = self.quality_model.predict([self.x[i]])
             probability_series.append(result)
