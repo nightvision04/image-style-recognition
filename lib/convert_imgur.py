@@ -3,8 +3,8 @@ import numpy as np
 import cv2
 import os
 import json
-from lib import connections as con
-import parser as p
+import connections as con
+import parser__ as p
 
 
 
@@ -17,7 +17,7 @@ class ImageData(p.ImageParser):
     def get_metadata(self,filename):
 
 
-        filepath = 'imgur/metadata/' + filename + "_full.txt"
+        filepath = '../imgur/metadata/' + filename + "_full.txt"
         filestring = ""
         with open(filepath,'r') as f:
             for line in f:
@@ -52,11 +52,11 @@ class ImageData(p.ImageParser):
 
 
 i=0
-for filename in os.listdir('imgur/images'):
+for filename in os.listdir('../imgur/images'):
     i+=1
-    if i> 3000:
+    if i> 1900:
         break
-    filepath = "imgur/images/"+filename
+    filepath = "../imgur/images/"+filename
     print(filepath)
 
     img = cv2.imread(filepath)

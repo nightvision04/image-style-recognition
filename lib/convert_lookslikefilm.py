@@ -7,6 +7,7 @@ import connections as con
 import parser__ as p
 
 
+
 class ImageData(p.ImageParser):
     '''This will hold the main frame data in between each loop of the fill function
     '''
@@ -15,29 +16,23 @@ class ImageData(p.ImageParser):
 
     def get_metadata(self,filename):
 
-        filepath = "../unsplash/metadata/"+filename+'_full.txt'
 
+        filepath = '../lookslikefilm/images/' + filename + "_full.txt"
         filestring = ""
-        with open(filepath,'r') as f:
-            for line in f:
-                filestring +=line
+        id = filename.split('.')[0]
 
-        self.meta = json.loads(filestring)
         tags_array = []
-        for i in range(len(self.meta['tags'])):
-            tags_array.append(self.meta['tags'][i]['title'])
-
         self.metadata = {
-                    'id':self.meta['id'],
+                    'id':id,
                     'tags':tags_array,
-                    'label':'unsplash'
+                    'label':'lookslikefilm'
         }
 
         return self
 
     def shrink(self):
         '''
-        Divide current size by 100 to find factor to reduce by
+        Divide current size by 100 to find reduce-factor
         '''
 
         if self.orientation == 'landscape':
@@ -49,24 +44,27 @@ class ImageData(p.ImageParser):
 
         self.img = cv2.resize(self.img,None,fx=factor, fy=factor, interpolation = cv2.INTER_CUBIC)
 
-
         return self
 
 
 
 i=0
-for filename in os.listdir('../unsplash/images'):
+for filename in os.listdir('../lookslikefilm/images'):
+
     i+=1
     if i> 1900:
         break
-    filepath = "../unsplash/images/"+filename
+    filepath = "../lookslikefilm/images/"+filename
     print(filepath)
 
     img = cv2.imread(filepath)
-    imagedata = ImageData(img)
+    try:
+        imagedata = ImageData(img)
+    except AttributeError:
+        continue
     imagedata.get_metadata(filename.split('.')[0])
     imagedata.convolution_strips({
                         'operation':'insert_table',
                         'img':None,
-                        'table':'unsplash_convolution',
+                        'table':'lookslikefilm_convolution',
                         })

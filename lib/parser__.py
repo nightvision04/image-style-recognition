@@ -2,7 +2,7 @@ import model_creator as mc
 import cv2
 import numpy as np
 import time
-
+import connections as con
 
 class ImageParser:
 
@@ -61,17 +61,17 @@ class ImageParser:
         # Redefine size after shrinking image
         self.width = len(self.img[0])
         self.height = len(self.img)
-        self.w_loops = self.width // 10
-        self.h_loops = self.height // 10
+        self.w_loops = self.width // 25
+        self.h_loops = self.height // 25
 
         self.h_ranges=[]
         # Create convolution squares from center mass
-        for j in range(0,(self.h_loops*10),10):
+        for j in range(0,(self.h_loops*25),25):
             self.h_ranges.append(j)
 
 
         self.w_ranges=[]
-        for i in range(0,(self.w_loops*10),10):
+        for i in range(0,(self.w_loops*25),25):
             self.w_ranges.append(i)
 
         if operation_dict['operation']=='insert_table':
@@ -116,7 +116,7 @@ class ImageParser:
                             })
         print('Loaded {}'.format(filepath))
 
-        
+
         thumbpath = 'static/images/downloads/thumbs/' + filepath.split('static/images/downloads/')[1]
         cv2.imwrite(thumbpath,self.img)
 
