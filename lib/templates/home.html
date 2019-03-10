@@ -16,39 +16,33 @@
 <label for="file" class='upload_box' id='mobile_picture_button'>
   <form method="post" id='form_' name ='form_' action="http://127.0.0.1:8090/" enctype="multipart/form-data" novalidate="" class="box has-advanced-upload" data-ajax="false">
 
-
-
-
     		<div class="box__input">
     			<svg class="box__icon" xmlns="http://www.w3.org/2000/svg" width="50" height="43" viewBox="0 0 50 43"><path d="m42.273881,38.891235l-35.880602,0c-2.974339,0 -5.393279,-2.418941 -5.393279,-5.393279l0,-21.872565c0,-2.974339 2.418941,-5.393279 5.393279,-5.393279l7.321439,0l0.640855,-2.161871c0.261545,-1.182966 1.34297,-2.051239 2.614889,-2.051239l14.727215,0c1.235974,0 2.329847,0.863797 2.619365,2.062009l0.017063,0.073708l0.58421,2.077254l7.356405,0c2.974339,0 5.393279,2.418941 5.393279,5.393279l0,21.872426c-0.000839,2.974619 -2.420619,5.393559 -5.394119,5.393559zm-35.880602,-30.861318c-1.982986,0 -3.595473,1.612627 -3.595473,3.595473l0,21.872426c0,1.982986 1.612627,3.595473 3.595473,3.595473l35.880602,0c1.982986,0 3.595473,-1.612627 3.595473,-3.595473l0,-21.872426c0,-1.982986 -1.612627,-3.595473 -3.595473,-3.595473l-8.717277,0l-0.98422,-3.510156c-0.090771,-0.408122 -0.458473,-0.703794 -0.875546,-0.703794l-14.727355,0c-0.423367,0 -0.782956,0.289378 -0.875546,0.704773l-1.039047,3.509177l-8.661611,0zm17.9417,25.427478c-6.291204,0 -11.409511,-5.117329 -11.409511,-11.407693c0,-6.291204 5.118168,-11.408532 11.409511,-11.408532c6.289525,0 11.406854,5.118168 11.406854,11.408532c-0.00014,6.289525 -5.117468,11.407693 -11.406854,11.407693zm0,-21.019398c-5.299851,0 -9.611705,4.311015 -9.611705,9.610866s4.311994,9.609887 9.611705,9.609887c5.298871,0 9.609047,-4.311015 9.609047,-9.609887c-0.00014,-5.299851 -4.311155,-9.610866 -9.609047,-9.610866zm16.778454,-1.071495c-0.916806,0 -1.658502,0.743375 -1.658502,1.658502c0,0.915967 0.741557,1.658362 1.658502,1.658362c0.915967,0 1.657523,-0.742536 1.657523,-1.658362c-0.000839,-0.915127 -0.742536,-1.658502 -1.657523,-1.658502z"></path></svg>
-
-
           <input type="file" name="files[]" id="file" class="box__file" data-multiple-caption="{count} files added" multiple="" accept="image/*">
-
     			<label for="file" class='upload_box'><p id="mobile_picture" class="box__dragndrop"><strong>Choose a picture</strong><span class="box__dragndrop"> or drag multiple here</span>.</p></label><br>
     			<button type="submit" class="box__button">Upload</button>
 
 
     		</div>
 
-      </label>
+
       <script>
       if (navigator.userAgent.match(/Mobile/)) {
       document.getElementById('mobile_picture').innerHTML = 'Take a picture';
-
       var mobile_mode=true;
-    }else{
-      var cnt = $("#mobile_picture_button").contents();
-      $("#mobile_picture_button").replaceWith(cnt);
 
-      var mobile_mode=false;
-    }
+      }else{
+        var cnt = $("#mobile_picture_button").contents();
+        $("#mobile_picture_button").replaceWith(cnt);
+        var mobile_mode=false;
+
+      }
       </script>
 
   		<div class="box__uploading">Please wait while we crunch on that…</div>
   		<div class="box__success">Done! <a href="http://127.0.0.1:8090/" class="box__restart" role="button">Upload more?</a></div>
   		<div class="box__error">Error! <span></span>. <a href="http://127.0.0.1:8090/" class="box__restart" role="button">Try again!</a></div>
-  	<input type="hidden" name="ajax" value="1"></form>
+  	<input type="hidden" name="ajax" value="1"></form></label>
 
 
     <footer>
