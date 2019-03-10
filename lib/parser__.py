@@ -73,14 +73,14 @@ class ImageParser:
 
         self.h_ranges=[]
         # Create an array of searchable convolution squares, defined by search 'size'
-        for j in range(0,(self.h_loops*operation_dict['size']),operation_dict['size']):
+        for j in range(0,((self.h_loops*operation_dict['size'])+1),operation_dict['size']):
             self.h_ranges.append(j)
-        self.h_ranges.append(self.height)
+        #self.h_ranges.append(self.height)
 
         self.w_ranges=[]
-        for i in range(0,(self.w_loops*operation_dict['size']),operation_dict['size']):
+        for i in range(0,((self.w_loops*operation_dict['size'])+1),operation_dict['size']):
             self.w_ranges.append(i)
-        self.w_ranges.append(self.width)
+        #self.w_ranges.append(self.width)
 
         for filter in operation_dict['filters']:
             self.img = filters.runfilter(self.img,filter)
@@ -107,8 +107,19 @@ class ImageParser:
                         result = con.insert_strip(arr1d,self.metadata,self.orientation,strat_connection,table)
 
         if operation_dict['operation']=='classify_image':
-            self.x = np.array(x).reshape(len(x),len(x[0]))
+            try:
+                self.x = np.array(x)
+                self.x = self.x.reshape(len(self.x),len(self.x[0]))
 
+            # Recast in case of pixel errors
+            except Exception as ValueError:
+                arr = np.zeros(len(x),dtype=object)
+                for i in range(len(x)):
+                    x[i] = np.array(x[i].tolist())
+                    arr[i]=x[i].astype(int)
+
+                arr = np.array(arr)
+                x = arr.reshape(len(arr),len(arr[0]))
         if operation_dict['operation']=='insert_table':
             strat_connection.close()
 
