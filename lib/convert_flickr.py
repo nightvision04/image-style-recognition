@@ -27,21 +27,6 @@ class ImageData(p.ImageParser):
 
         return self
 
-    def shrink(self):
-        '''
-        Divide current size by 100 to find reduce-factor
-        '''
-
-        if self.orientation == 'landscape':
-            factor = 100 / self.height
-        if self.orientation == 'portrait':
-            factor = 100 / self.width
-        if self.orientation == 'square':
-            factor = 100 / self.width # Can be height or width
-
-        self.img = cv2.resize(self.img,None,fx=factor, fy=factor, interpolation = cv2.INTER_CUBIC)
-
-        return self
 
 
 con.clear_table('flickr_convolution')

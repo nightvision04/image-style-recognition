@@ -41,17 +41,28 @@ def set_scope():
     except:
         return False
 
+
     try:
         if not session['images']:
-            print('nothing yet!')
-        else:
-            print('hello again!')
+            print('No images yet')
     except:
         print('nothing yet!')
         session['images'] = []
 
+
+    try:
+        if not session['active_curators']:
+            print('Setting curator to default')
+    except:
+        print('nothing yet!')
+        session['active_curators'] = ['Overall Style']
+
+
+
     try:
         session['version'] = "Version 1.0"
+
+
         return True
     except ValueError:
         return False
@@ -123,6 +134,7 @@ def _home_():
 
             return 'no file sent'
 
+
         for file in request.files.getlist('files[]'):
             # if user does not select file, browser also
             # submit an empty part without filename
@@ -136,11 +148,12 @@ def _home_():
                 filepath = app.config['UPLOAD_FOLDER']+'/'+filename
                 filepath_thumb = 'static/images/downloads/thumbs/' + filepath.split('static/images/downloads/')[1]
                 print('Opening file:',filepath)
-                quality_score = model.predict_quality(filepath)
-                session['images'].append([quality_score,filepath,filepath_thumb])
+                scores = model.predict_quality(filepath)
+                session['images'].append([scores,filepath,filepath_thumb])
 
 
-        session['images'],html = vc.gallery_view_html(session['images'],'quality')
+        session['images'],html = vc.gallery_view_html(session['images'],
+                                    session['active_curators'])
 
         return html
 
@@ -152,7 +165,8 @@ def _home_():
             return render_template('home.html')
 
         else:
-            session['images'],html = vc.gallery_view_html(session['images'],'quality')
+            session['images'],html = vc.gallery_view_html(session['images'],
+                                                        session['active_curators'])
             return render_template('home.html',session_view=html)
 
 

@@ -4,6 +4,7 @@ import numpy as np
 import time
 import connections as con
 import filters
+import json
 
 
 
@@ -14,19 +15,21 @@ class ImageParser:
 
         self.lookslikefilm_model = joblib.load('../models/lookslikefilm_convolution.pickle')
         self.unsplash_model = joblib.load('../models/unsplash_model.pickle')
+        self.lookslikefilm_grayscale = joblib.load('../models/lookslikefilm_grayscale.pickle')
+        self.unsplash_grayscale = joblib.load('../models/unsplash_grayscale.pickle')
         print('Unsplash model loaded')
 
-    def shrink(self):
+    def shrink(self,output_size):
         '''
         Divide current size by 100 to find reduce-factor
         '''
 
         if self.orientation == 'landscape':
-            factor = 100 / self.height
+            factor = output_size / self.height
         if self.orientation == 'portrait':
-            factor = 100 / self.width
+            factor = output_size / self.width
         if self.orientation == 'square':
-            factor = 100 / self.width # Can be height or width
+            factor = output_size / self.width # Can be height or width
 
         self.img = cv2.resize(self.img,None,fx=factor, fy=factor, interpolation = cv2.INTER_CUBIC)
 
@@ -51,7 +54,6 @@ class ImageParser:
         if operation_dict['operation']=='classify_image':
             self.img = operation_dict['img']
 
-
         self.width = len(self.img[0])
         self.height = len(self.img)
         if (self.width / self.height) > 1:
@@ -60,8 +62,7 @@ class ImageParser:
             self.orientation = 'portrait'
         if (self.width / self.height) == 1:
             self.orientation = 'square'
-        self.shrink()
-
+        self.shrink(100)
 
 
         # Redefine size after shrinking image
@@ -71,14 +72,15 @@ class ImageParser:
         self.h_loops = self.height // operation_dict['size']
 
         self.h_ranges=[]
-        # Create convolution squares from center mass
+        # Create an array of searchable convolution squares, defined by search 'size'
         for j in range(0,(self.h_loops*operation_dict['size']),operation_dict['size']):
             self.h_ranges.append(j)
-
+        self.h_ranges.append(self.height)
 
         self.w_ranges=[]
         for i in range(0,(self.w_loops*operation_dict['size']),operation_dict['size']):
             self.w_ranges.append(i)
+        self.w_ranges.append(self.width)
 
         for filter in operation_dict['filters']:
             self.img = filters.runfilter(self.img,filter)
@@ -122,6 +124,7 @@ class ImageParser:
         Future: Should accept a url.
         '''
 
+        # Color score
         img = cv2.imread(filepath)
         self.convolution_strips({
                             'operation':'classify_image',
@@ -132,23 +135,54 @@ class ImageParser:
                             })
         print('Loaded {}'.format(filepath))
 
-
+        # Save the 100x100 px thumb
         thumbpath = 'static/images/downloads/thumbs/' + filepath.split('static/images/downloads/')[1]
         cv2.imwrite(thumbpath,self.img)
 
-        probability_series = []
-
+        t1=time.time()
+        lookslikefilm_color = []
+        unsplash_color = []
         t1=time.time()
         for i in range(len(self.x)):
-            llf_result = self.lookslikefilm_model.predict([self.x[i]])
-            us_result = self.unsplash_model.predict([self.x[i]])
-            probability_series.append(llf_result)
-            probability_series.append(us_result)
-            bin_count=i
+            lookslikefilm_color.append( self.lookslikefilm_model.predict([self.x[i]]) )
+            unsplash_color.append( self.unsplash_model.predict([self.x[i]]) )
+        bin_count=len(self.x)
+        # weight scores
+        lookslikefilm_color = np.sum(np.array(lookslikefilm_color) / bin_count)
+        unsplash_color = np.sum(np.array(unsplash_color) / bin_count)
+
+
+
+        # Framing Score
+        img = cv2.imread(filepath)
+        self.convolution_strips({
+                            'operation':'classify_image',
+                            'img':img,
+                            'table':None,
+                            'filters':['grayscale_high_contrast'],
+                            'size':50
+                            })
+        print('Loaded {}'.format(filepath))
+
+        lookslikefilm_framing = []
+        unsplash_framing = []
+
+        for i in range(len(self.x)):
+            lookslikefilm_framing.append( self.lookslikefilm_grayscale.predict([self.x[i]]) )
+            unsplash_framing.append( self.unsplash_grayscale.predict([self.x[i]]) )
+        bin_count=len(self.x)
+        # weight scores
+        lookslikefilm_framing = np.sum(np.array(lookslikefilm_framing) / bin_count)
+        unsplash_framing = np.sum(np.array(unsplash_framing) / bin_count)
+
+
+        overall_score = (lookslikefilm_color + unsplash_color + lookslikefilm_framing + unsplash_framing) / 4
 
         t2=time.time()
         print ("{} seconds".format(t2-t1))
-        probability_series = np.array(probability_series)
-        result = (np.sum(probability_series) / bin_count)
-        print("Predicted {0} across {1} scans".format(result,bin_count))
-        return result
+        print("Predicted {0} across {1} scans".format(overall_score,bin_count))
+        return json.dumps({'Overall Style':overall_score,
+                'Filmic Style':lookslikefilm_color,
+                'Modern Style':unsplash_color,
+                'Glamour Framing':lookslikefilm_framing,
+                'Modern Framing':unsplash_framing})

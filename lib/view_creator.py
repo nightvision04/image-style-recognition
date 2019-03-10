@@ -1,20 +1,32 @@
 
 import pandas as pd
 import numpy as np
+import json
 
-def gallery_view_html(session,sort_method):
+def gallery_view_html(image_list,active_curators):
 
-    obj = session
-
-    arr = np.array(obj)
+    arr = np.array(image_list)
     df = pd.DataFrame()
-    df['quality'] = arr[:,0]
+
+    active_curator_score = arr[:,0]
+
+    # For each entry, check the list of active curators,
+    # and sum their scores.
+    active_curator_score_mod = np.zeros(len(active_curator_score))
+    for i in range(len(active_curator_score)):
+        score=0
+        for key in active_curators:
+            score += json.loads(active_curator_score[i])[key]
+        active_curator_score_mod[i] = score
+
+    df['active_scores'] = active_curator_score_mod
+    df['quality'] = active_curator_score
     df['filepaths'] = arr[:,1]
     df['filepaths_thumb'] = arr[:,2]
-    df = df.sort_values(by=sort_method,ascending=False)
+    df = df.sort_values(by='quality',ascending=False)
     df = df.drop_duplicates(subset='filepaths', keep="last")
 
-    quality = df['quality'].values
+    quality = df['active_scores'].values
     filepaths = df['filepaths'].values
     filepaths_thumb = df['filepaths_thumb'].values
 
@@ -48,6 +60,9 @@ $(document).on("click", '[data-toggle="lightbox"]', function(event) {
 </script>
         '''
 
-    session = [[quality[i],filepaths[i],filepaths_thumb[i]] for i in range(len(quality))]
+    image_list = [[df['quality'].values[i],
+                filepaths[i],
+                filepaths_thumb[i]] for i in range(len(quality))]
 
-    return session,html
+
+    return image_list,html

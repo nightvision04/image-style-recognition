@@ -11,3 +11,5 @@ lookslikefilm/
 flickr/
 models/lookslikefilm_convolution.pickle
 models/unsplash_model.pickle
+models/lookslikefilm_grayscale.pickle
+models/unsplash_grayscale.pickle

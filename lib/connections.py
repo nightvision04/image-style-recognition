@@ -52,11 +52,11 @@ def clear_table(table):
     connection = get_connection('image_profile')
 
     try:
-        with strat_connection.cursor() as cursor:
-        query = ("DELETE * FROM {};").format(table)
-        cursor.execute(query)
-        connection.commit()
-        print('Cleared data from {}'.format(table))
+        with connection.cursor() as cursor:
+            query = ("DELETE FROM {};").format(table)
+            cursor.execute(query)
+            connection.commit()
+            print('Cleared data from {}'.format(table))
     except Exception as e:
         print(e)
     connection.close()
