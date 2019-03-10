@@ -5,13 +5,15 @@ import time
 import connections as con
 
 
+
 class ImageParser:
 
     def __init__(self):
         from sklearn.externals import joblib
 
-        self.quality_model = joblib.load('../models/quality_model.pickle')
-        print('Quality model loaded')
+        self.lookslikefilm_model = joblib.load('../models/lookslikefilm_convolution.pickle')
+        self.unsplash_model = joblib.load('../models/unsplash_model.pickle')
+        print('Unsplash model loaded')
 
     def shrink(self):
         '''
@@ -128,8 +130,10 @@ class ImageParser:
 
 
 
-            result = self.quality_model.predict([self.x[i]])
-            probability_series.append(result)
+            llf_result = self.lookslikefilm_model.predict([self.x[i]])
+            us_result = self.unsplash_model.predict([self.x[i]])
+            probability_series.append(llf_result)
+            probability_series.append(us_result)
             bin_count=i
         t2=time.time()
         print ("{} seconds".format(t2-t1))

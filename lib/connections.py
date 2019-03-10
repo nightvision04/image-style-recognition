@@ -4,6 +4,8 @@ import numpy as np
 import pickle
 import json
 import pandas as pd
+import hashlib
+import datetime
 
 
 def get_connection(db_):
@@ -56,3 +58,59 @@ def get_id_strips(strat_connection,table):
     return df
 
 print('loaded connections')
+
+
+def check_credentials(email,password,ip,connection):
+
+    password = password.encode('utf-8')
+    m = hashlib.sha1()
+    m.update(password)
+    result = m.hexdigest()
+    print(result)
+    print(ip)
+
+    try:
+        with connection.cursor() as cursor:
+            query = ("SELECT `password` FROM `users` WHERE `email`=%(email)s;")
+            data_entry = {
+                'email':email
+            }
+            df = pd.read_sql(query, connection,params=data_entry)
+            if len(df) == 0:
+                return False
+
+            m = hashlib.sha1()
+            m.update(password)
+            result = m.hexdigest()
+            print(df.iloc[0]['password'])
+            if df.iloc[0]['password'] == result:
+
+                query = ("INSERT INTO `login_attempts` SET `email`=%(email)s,`status`=%(status)s,`datetime`=%(datetime)s,`ip`=%(ip)s;")
+                data_entry = {
+                    'email':email,
+                    'status': 'success',
+                    'datetime': datetime.datetime.now(),
+                    'ip':ip
+                }
+                cursor.execute(query,data_entry)
+                connection.commit()
+
+                print('Login success')
+
+                return True
+            else:
+                query = ("INSERT INTO `login_attempts` SET `email`=%(email)s,`status`=%(status)s,`datetime`=%(datetime)s,`ip`=%(ip)s ;")
+                data_entry = {
+                    'email':email,
+                    'status': 'failed',
+                    'datetime':datetime.datetime.now(),
+                    'ip':ip
+                }
+                cursor.execute(query,data_entry)
+                connection.commit()
+                print('Login failed')
+                return False
+
+    except Exception as a:
+        print ("SQL ERROR: "+str(a))
+        return False

@@ -8,3 +8,6 @@ models/bgr_quality.pickle
 models/quality_model.pickle
 lib/static/images/downloads/
 lookslikefilm/
+flickr/
+models/lookslikefilm_convolution.pickle
+models/unsplash_model.pickle

@@ -1,0 +1,82 @@
+
+
+<link href="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
+
+
+<html>
+  <head>
+
+
+
+  <link href="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js" rel="stylesheet" id="login"></script>
+{% include 'includes/login_style.html' %}
+
+  </head>
+<body id="LoginForm">
+<div class="container container-v">
+<img src="/static/images/logo-nav.png" class='img-responsive center-block' style='margin:30;'>
+<div class="login-form">
+<div class="main-div">
+    <div class="panel">
+   <h2>Alpha Access</h2>
+   <p>Please enter your email and access code</p>
+   </div>
+    <form id="Login">
+
+        <div class="form-group">
+
+
+            <input type="email" class="form-control" id="inputEmail" name='email' placeholder="Email">
+
+        </div>
+
+        <div class="form-group">
+
+            <input type="password" class="form-control" id="inputPassword" name='password' placeholder="Access Code">
+
+        </div>
+        <div class="forgot">
+
+</div>
+        <button type="button" name='submit_login' class="btn btn-primary">Login</button>
+
+        <script type="text/javascript">
+
+        $(document).ready(function() {
+
+            // process the form
+            $('button').click(function(event) {
+              event.preventDefault();
+                // process the form
+                $.ajax({
+                      type: "POST",
+                      url: '/login',
+                      data: {email: $('input[name=email]').val(),
+                            password: $('input[name=password]').val()
+                              },
+                      success: function (result_) {
+
+                          window.location.assign('/');
+
+                          }
+
+                  });
+
+
+            });
+
+        });
+          </script>
+
+    </form>
+    </div>
+</div></div>
+
+
+</body>
+</html>
