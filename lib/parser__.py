@@ -3,6 +3,7 @@ import cv2
 import numpy as np
 import time
 import connections as con
+import filters
 
 
 
@@ -41,6 +42,8 @@ class ImageParser:
                             'operation':['insert_table','classify_image']
                             'img':None
                             'table':[None,'imgur_convolution','unsplash_convolution']
+                            'filters': ['grayscale_high_contrast']
+                            'size': [any number between 2 and 253]
                             }
 
         '''
@@ -64,18 +67,21 @@ class ImageParser:
         # Redefine size after shrinking image
         self.width = len(self.img[0])
         self.height = len(self.img)
-        self.w_loops = self.width // 25
-        self.h_loops = self.height // 25
+        self.w_loops = self.width // operation_dict['size']
+        self.h_loops = self.height // operation_dict['size']
 
         self.h_ranges=[]
         # Create convolution squares from center mass
-        for j in range(0,(self.h_loops*25),25):
+        for j in range(0,(self.h_loops*operation_dict['size']),operation_dict['size']):
             self.h_ranges.append(j)
 
 
         self.w_ranges=[]
-        for i in range(0,(self.w_loops*25),25):
+        for i in range(0,(self.w_loops*operation_dict['size']),operation_dict['size']):
             self.w_ranges.append(i)
+
+        for filter in operation_dict['filters']:
+            self.img = filters.runfilter(self.img,filter)
 
         if operation_dict['operation']=='insert_table':
             strat_connection = con.get_connection('image_profile')
@@ -89,6 +95,8 @@ class ImageParser:
                 # We only want to create records for standardized square shapes. Reject other shapes
                 if (i < len(self.h_ranges)-1) and (j < len(self.w_ranges)-1):
                     arr1d = np.array([self.img[k][l] for l in range(self.w_ranges[j],self.w_ranges[j+1]) for k in range(self.h_ranges[i],self.h_ranges[i+1])]).ravel() # make an even
+
+
 
                     if operation_dict['operation']=='classify_image':
                         x.append(arr1d)
@@ -105,6 +113,9 @@ class ImageParser:
         return self
 
 
+
+
+
     def predict_quality(self,filepath):
         '''
         This function expects a local filepath to the image (in the downloads folder).
@@ -116,6 +127,8 @@ class ImageParser:
                             'operation':'classify_image',
                             'img':img,
                             'table':None,
+                            'filters':[''],
+                            'size':25
                             })
         print('Loaded {}'.format(filepath))
 
@@ -127,14 +140,12 @@ class ImageParser:
 
         t1=time.time()
         for i in range(len(self.x)):
-
-
-
             llf_result = self.lookslikefilm_model.predict([self.x[i]])
             us_result = self.unsplash_model.predict([self.x[i]])
             probability_series.append(llf_result)
             probability_series.append(us_result)
             bin_count=i
+
         t2=time.time()
         print ("{} seconds".format(t2-t1))
         probability_series = np.array(probability_series)

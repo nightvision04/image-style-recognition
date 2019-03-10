@@ -20,6 +20,9 @@ def get_connection(db_):
     return connect
 
 
+
+
+
 def insert_strip(array,metadata,orientation,strat_connection,table):
     '''
     Insert convolution strip into db
@@ -44,6 +47,19 @@ def insert_strip(array,metadata,orientation,strat_connection,table):
 
     return True
 
+
+def clear_table(table):
+    connection = get_connection('image_profile')
+
+    try:
+        with strat_connection.cursor() as cursor:
+        query = ("DELETE * FROM {};").format(table)
+        cursor.execute(query)
+        connection.commit()
+        print('Cleared data from {}'.format(table))
+    except Exception as e:
+        print(e)
+    connection.close()
 
 def get_id_strips(strat_connection,table):
     '''

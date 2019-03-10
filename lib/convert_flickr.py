@@ -44,6 +44,8 @@ class ImageData(p.ImageParser):
         return self
 
 
+con.clear_table('flickr_convolution')
+con.clear_table('flickr_grayscale')
 
 i=0
 for filename in os.listdir('../flickr/images'):
@@ -64,4 +66,17 @@ for filename in os.listdir('../flickr/images'):
                         'operation':'insert_table',
                         'img':None,
                         'table':'flickr_convolution',
+                        'filters':[''],
+                        'size':25
+                        })
+
+    img = cv2.imread(filepath)
+    imagedata = ImageData(img)
+    imagedata.get_metadata(filename.split('.')[0])
+    imagedata.convolution_strips({
+                        'operation':'insert_table',
+                        'img':None,
+                        'table':'flickr_grayscale',
+                        'filters':['grayscale_high_contrast'],
+                        'size':50
                         })
