@@ -128,6 +128,8 @@ def _home_():
     files = None
     if request.method == "POST":
 
+        print(request.files)
+
         # check if the post request has the file part
         if 'files[]' not in request.files:
             print('No file part')
