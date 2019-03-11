@@ -7,6 +7,8 @@ This project uses a scikit pipeline to predict and sort the quality of photos ac
 - texture and interest
 - geometric interest
 
+It has the ability to detect professional photos with a tolerance of 3-5% and provides a granular score between 0.01 and 1.00.
+
 Here are some screenshots.
 
 <img src="/snapshots/j1.png" width="680">
@@ -24,3 +26,5 @@ The site is also customized for a special mobile experience that lets the user q
  # Machine Learning Pipeline
  
  The pipeline currently combines several nodes of Principal Component Analysis, and Random Forest classifiers in a convoultion design to 'wipe' across images. This allows for the model to handle unique image shapes.
+ 
+Training data is currently around 90,000 samples and applies a broad variance.
