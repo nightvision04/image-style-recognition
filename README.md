@@ -31,13 +31,12 @@ It has the ability to detect professional photos with a tolerance of 3-5% and pr
 
 <img src="/snapshots/j1.png" width="680">
 
-The interface features an easy-to-use interface where clients can easily drop and drop files to have them analyzed
+The app features an easy-to-use interface where clients can easily drag and drop files to have them analyzed.
 
 <img src="/snapshots/h4.png" width="680">
 
-The site is also customized for a special mobile experience that lets the user quickly curate pictures from their camera.
+The site is also customized for an intuitive mobile experience that lets the user quickly curate pictures from their camera.
 
- Currently the project is in alpha, but the main engine is complete.
  
  <img src="/snapshots/h3.png" width="680">
  
