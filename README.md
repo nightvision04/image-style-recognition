@@ -1,4 +1,5 @@
 # image-style-recognition
+
 This project uses a scikit pipeline to predict and sort the quality of photos across several metrics, such as:
 
 - filmic color style
@@ -9,7 +10,16 @@ This project uses a scikit pipeline to predict and sort the quality of photos ac
 
 It has the ability to detect professional photos with a tolerance of 3-5% and provides a granular score between 0.01 and 1.00.
 
-Here are some screenshots.
+# Dependencies
+
+- Python 3.6 (Anaconda)
+- Pandas
+- Numpy
+- Flask
+- opencv-python
+- scikit-learn
+
+# Screenshots
 
 <img src="/snapshots/j1.png" width="680">
 
