@@ -21,3 +21,6 @@ The site is also customized for a special mobile experience that lets the user q
  
  <img src="/snapshots/h3.png" width="680">
  
+ # Machine Learning Pipeline
+ 
+ The pipeline currently combines several nodes of Principal Component Analysis, and Random Forest classifiers in a convoultion design to 'wipe' across images. This allows for the model to handle unique image shapes.
