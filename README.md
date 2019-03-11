@@ -1,5 +1,11 @@
 # image-style-recognition
-This project uses a scikit pipeline to predict the quality of photos across several metrics
+This project uses a scikit pipeline to predict the quality of photos across several metrics such as:
+
+- filmic color style
+- modern color style
+- framing style
+- texture and interest
+- geometric interest
 
 Here are some screenshots.
 
