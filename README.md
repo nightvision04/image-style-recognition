@@ -36,6 +36,6 @@ The site is also customized for a special mobile experience that lets the user q
  
  # Machine Learning Pipeline
  
- The pipeline currently combines several nodes of Principal Component Analysis, and Random Forest classifiers in a convoultion design to 'wipe' across images. This allows for the model to handle unique image shapes.
+ The pipeline currently combines several nodes of Principal Component Analysis, and Random Forest classifiers in a convoultion design to traverse image data. This allows for the model to stay flexible when handling unique image shapes.
  
 Training data is currently around 90,000 samples and applies a broad variance.
