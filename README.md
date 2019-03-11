@@ -18,6 +18,7 @@ It has the ability to detect professional photos with a tolerance of 3-5% and pr
 - Flask
 - opencv-python
 - scikit-learn
+- mysql
 
 # Screenshots
 
