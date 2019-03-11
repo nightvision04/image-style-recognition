@@ -8,7 +8,7 @@ This project uses a scikit pipeline to predict and sort the quality of photos ac
 - texture and interest
 - geometric interest
 
-It has the ability to detect professional photos with a tolerance of 3-5% and provides a granular score between 0.01 and 1.00 to the user with a variety of sorting options.
+It has the ability to detect professional photos with a tolerance of 3-5% and provides a granular score between 0.01 and 1.00 to the user with a variety of sorting options. It is particularily useful at rejecting amatuer photography, and has application for companies which want to prioritize the display of inspiring content.
 
 # Dependencies
 
