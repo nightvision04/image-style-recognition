@@ -14,7 +14,7 @@ class ImageParser:
         from sklearn.externals import joblib
 
         self.lookslikefilm_model = joblib.load('../models/lookslikefilm_convolution.pickle')
-        self.unsplash_model = joblib.load('../models/unsplash_model.pickle')
+        self.unsplash_model = joblib.load('../models/unsplash_convolution.pickle')
         self.lookslikefilm_grayscale = joblib.load('../models/lookslikefilm_grayscale.pickle')
         self.unsplash_grayscale = joblib.load('../models/unsplash_grayscale.pickle')
         print('Unsplash model loaded')

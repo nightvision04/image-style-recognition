@@ -8,10 +8,15 @@
 <div class='styler'>
 </div>
 
-  <div class='picture-grid'>
+  <div class='picture-grid' id='picture-grid'>
   {{session_view|safe}}
   </div>
+  <script>
+    if( !$.trim( $('#picture-grid').html() ).length ){
+      $('#picture-grid').append( "<p><h4>Look's like you haven't posted anything yet.</h4> Drag your first picture into the box below, or click on 'Analyze Instagram Account.'</p><br><br>" );
 
+    }
+  </script>
 
 <label for="file" class='upload_box' id='mobile_picture_button'>
   <form method="post" id='form_' name ='form_' action="http://127.0.0.1:8090/" enctype="multipart/form-data" novalidate="" class="box has-advanced-upload" data-ajax="false">
@@ -46,7 +51,7 @@
 
 
     <footer>
-    		<p><strong>Test drive creativity from the best curators around the world.</strong></p>
+    		<p><strong>Our AI curation imitates the best tastemakers in the world.</strong></p>
 
     </footer>
 
@@ -167,7 +172,7 @@ var $input    = $form.find('input[type="file"]'),
 $input.on('change', function(e) {
 
   droppedFiles = e.target.files;
-  showFiles(e.target.files);
+  document.getElementById('mobile_picture').innerHTML = 'Uploading...';
   $form.trigger('submit');
 
 });
@@ -200,7 +205,7 @@ function sendFileMobile(fileData) {
   var ajaxDataMobile = new FormData(fileData);
 
   ajaxDataMobile.append( 'files[]', fileData );
-
+  document.getElementById('mobile_picture').innerHTML = 'Uploading...';
 	$.ajax({
 
     url: '/',
@@ -211,6 +216,10 @@ function sendFileMobile(fileData) {
     processData: false,
     complete: function(data) {
 
+
+      $( "div.picture-grid").html(data.responseText);
+
+      document.getElementById('mobile_picture').innerHTML = 'Added! Upload another?';
 		},
 		error: function (data) {
 			alert('There was an error uploading your file!');

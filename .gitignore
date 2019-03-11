@@ -13,3 +13,7 @@ models/lookslikefilm_convolution.pickle
 models/unsplash_model.pickle
 models/lookslikefilm_grayscale.pickle
 models/unsplash_grayscale.pickle
+instagram_downloads/
+joeypilgrim/
+models/unsplash_convolution.pickle
+instagram-scraper.log
