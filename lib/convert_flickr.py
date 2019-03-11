@@ -8,11 +8,13 @@ import parser__ as p
 
 
 
+
 class ImageData(p.ImageParser):
     '''This will hold the main frame data in between each loop of the fill function
     '''
     def __init__(self,img):
         self.img = img.copy()
+        super().__init__()
 
     def get_metadata(self,filename):
 
@@ -45,23 +47,10 @@ for filename in os.listdir('../flickr/images'):
     try:
         imagedata = ImageData(img)
     except AttributeError:
-        continue
-    imagedata.get_metadata(filename.split('.')[0])
-    imagedata.convolution_strips({
-                        'operation':'insert_table',
-                        'img':None,
-                        'table':'flickr_convolution',
-                        'filters':[''],
-                        'size':25
-                        })
 
-    img = cv2.imread(filepath)
-    imagedata = ImageData(img)
-    imagedata.get_metadata(filename.split('.')[0])
-    imagedata.convolution_strips({
-                        'operation':'insert_table',
-                        'img':None,
-                        'table':'flickr_grayscale',
-                        'filters':['grayscale_high_contrast'],
-                        'size':50
-                        })
+        continue
+
+
+    from pprint import pprint
+    #pprint(vars(imagedata))
+    imagedata.import_training_data('flickr',filename,img)

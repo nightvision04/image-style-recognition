@@ -13,6 +13,7 @@ class ImageData(p.ImageParser):
     '''
     def __init__(self,img):
         self.img = img.copy()
+        super().__init__()
 
     def get_metadata(self,filename):
 
@@ -48,22 +49,4 @@ for filename in os.listdir('../lookslikefilm/images'):
         imagedata = ImageData(img)
     except AttributeError:
         continue
-    imagedata.get_metadata(filename.split('.')[0])
-    imagedata.convolution_strips({
-                        'operation':'insert_table',
-                        'img':None,
-                        'table':'lookslikefilm_convolution',
-                        'filters':[''],
-                        'size':25
-                        })
-
-    img = cv2.imread(filepath)
-    imagedata = ImageData(img)
-    imagedata.get_metadata(filename.split('.')[0])
-    imagedata.convolution_strips({
-                        'operation':'insert_table',
-                        'img':None,
-                        'table':'lookslikefilm_grayscale',
-                        'filters':['grayscale_high_contrast'],
-                        'size':50
-                        })
+    imagedata.import_training_data('lookslikefilm',filename,img)

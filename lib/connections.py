@@ -6,14 +6,16 @@ import json
 import pandas as pd
 import hashlib
 import datetime
-
+import os
+sql_user =os.environ['SQL_USER']
+sql_pass = os.environ['SQL_PASS']
 
 def get_connection(db_):
     ''' Prepares database-specific connection, which is used to be passed into sql connection functions. Expects a database name string.
     '''
     connect = pymysql.connect(host='localhost',
-                                 user='user_insert',
-                                 password='EhtcThisMachine!',
+                                 user=sql_user,
+                                 password=sql_pass,
                                  db=db_,
                                  charset='utf8mb4',
                                  cursorclass=pymysql.cursors.DictCursor)

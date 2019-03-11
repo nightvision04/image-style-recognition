@@ -8,6 +8,7 @@ import json
 
 
 
+
 class ImageParser:
 
     def __init__(self):
@@ -17,7 +18,13 @@ class ImageParser:
         self.unsplash_model = joblib.load('../models/unsplash_convolution.pickle')
         self.lookslikefilm_grayscale = joblib.load('../models/lookslikefilm_grayscale.pickle')
         self.unsplash_grayscale = joblib.load('../models/unsplash_grayscale.pickle')
-        print('Unsplash model loaded')
+
+        self.side_min_size = 60
+        self.grayscale_size = 30
+        self.color_size = 20
+
+
+
 
     def shrink(self,output_size):
         '''
@@ -36,6 +43,26 @@ class ImageParser:
         return self
 
 
+    def generate_thumbnail(self,size,filepath):
+        self.width = len(self.img[0])
+        self.height = len(self.img)
+        if (self.width / self.height) > 1:
+            self.orientation = 'landscape'
+        if (self.width / self.height) < 1:
+            self.orientation = 'portrait'
+        if (self.width / self.height) == 1:
+            self.orientation = 'square'
+        self.shrink(size)
+
+        if 'instagram_accounts' in filepath:
+            username = filepath.split('/')[2]
+            parent = filepath.split('/')[0] + '/' + filepath.split('/')[1] + '/'
+            img_path = filepath.split('/')[3]
+            thumbpath = parent + username + '/thumbs/' + img_path
+        else:
+            thumbpath = 'static/images/downloads/thumbs/' + filepath.split('static/images/downloads/')[1]
+        cv2.imwrite(thumbpath,self.img)
+
 
     def convolution_strips(self,operation_dict):
         '''
@@ -45,7 +72,7 @@ class ImageParser:
                             'operation':['insert_table','classify_image']
                             'img':None
                             'table':[None,'imgur_convolution','unsplash_convolution']
-                            'filters': ['grayscale_high_contrast']
+                            'filters': ['grayscale']
                             'size': [any number between 2 and 253]
                             }
 
@@ -62,7 +89,7 @@ class ImageParser:
             self.orientation = 'portrait'
         if (self.width / self.height) == 1:
             self.orientation = 'square'
-        self.shrink(100)
+        self.shrink(self.side_min_size)
 
 
         # Redefine size after shrinking image
@@ -98,13 +125,17 @@ class ImageParser:
                 if (i < len(self.h_ranges)-1) and (j < len(self.w_ranges)-1):
                     arr1d = np.array([self.img[k][l] for l in range(self.w_ranges[j],self.w_ranges[j+1]) for k in range(self.h_ranges[i],self.h_ranges[i+1])]).ravel() # make an even
 
-
-
                     if operation_dict['operation']=='classify_image':
                         x.append(arr1d)
 
                     if operation_dict['operation']=='insert_table':
                         result = con.insert_strip(arr1d,self.metadata,self.orientation,strat_connection,table)
+
+                    print('h_range',self.h_ranges[i],'w_range',self.w_ranges[j])    
+                    print('i',i,'j',j)
+                    print('len',len(arr1d))
+
+
 
         if operation_dict['operation']=='classify_image':
             try:
@@ -126,8 +157,33 @@ class ImageParser:
         return self
 
 
+    def import_training_data(self,source,filename,img):
+
+        operation = 'insert_table'
+        table_color = '{}_convolution'.format(source)
+        table_grayscale = '{}_grayscale'.format(source)
 
 
+        self.img = img
+        self.get_metadata(filename.split('.')[0])
+        self.convolution_strips({
+                            'operation':operation,
+                            'img':None,
+                            'table':table_color,
+                            'filters':[''],
+                            'size':self.color_size
+                            })
+
+        self.img = img
+        self.get_metadata(filename.split('.')[0])
+        self.convolution_strips({
+                            'operation':operation,
+                            'img':None,
+                            'table':table_grayscale,
+                            'filters':['grayscale'],
+                            'size':self.grayscale_size
+                            })
+        return self
 
     def predict_quality(self,filepath):
         '''
@@ -136,25 +192,26 @@ class ImageParser:
         '''
 
         # Color score
-        img = cv2.imread(filepath)
+        self.img = cv2.imread(filepath)
+        self.generate_thumbnail(125,filepath)
+
         self.convolution_strips({
                             'operation':'classify_image',
-                            'img':img,
+                            'img':self.img,
                             'table':None,
                             'filters':[''],
-                            'size':25
+                            'size':self.color_size
                             })
         print('Loaded {}'.format(filepath))
 
-        # Save the 100x100 px thumb
-        thumbpath = 'static/images/downloads/thumbs/' + filepath.split('static/images/downloads/')[1]
-        cv2.imwrite(thumbpath,self.img)
 
         t1=time.time()
         lookslikefilm_color = []
         unsplash_color = []
         t1=time.time()
+
         for i in range(len(self.x)):
+            print(self.x[i].shape)
             lookslikefilm_color.append( self.lookslikefilm_model.predict([self.x[i]]) )
             unsplash_color.append( self.unsplash_model.predict([self.x[i]]) )
         bin_count=len(self.x)
@@ -170,8 +227,8 @@ class ImageParser:
                             'operation':'classify_image',
                             'img':img,
                             'table':None,
-                            'filters':['grayscale_high_contrast'],
-                            'size':50
+                            'filters':['grayscale'],
+                            'size':self.grayscale_size
                             })
         print('Loaded {}'.format(filepath))
 
