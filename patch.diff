@@ -1,0 +1,1152 @@
+From fa01e7af80b32110088e2f0d3aee6fea0847625c Mon Sep 17 00:00:00 2001
+From: Daniel Scott <info@synapseproduction.com>
+Date: Mon, 11 Mar 2019 15:50:39 -0600
+Subject: [PATCH] Fixed superclass calling
+
+---
+ lib/add_instagram_query.ipynb | 271 ++++++++++++++++++++++++++++++++++
+ lib/connections.py            |   8 +-
+ lib/convert_flickr.py         |  25 +---
+ lib/convert_imgur.py          |  21 +--
+ lib/convert_lookslikefilm.py  |  21 +--
+ lib/convert_start.py          |  31 +++-
+ lib/convert_unsplash.py       |  21 +--
+ lib/filters.py                |  15 +-
+ lib/instagram_parser.py       |  20 +++
+ lib/model_creator.ipynb       |  27 ++--
+ lib/model_creator.py          | 142 +++++++++++++-----
+ lib/parser__.py               |  83 +++++++++--
+ lib/templates/home.html       |   2 +-
+ 13 files changed, 531 insertions(+), 156 deletions(-)
+ create mode 100644 lib/add_instagram_query.ipynb
+ create mode 100644 lib/instagram_parser.py
+
+diff --git a/lib/add_instagram_query.ipynb b/lib/add_instagram_query.ipynb
+new file mode 100644
+index 0000000..90cf075
+--- /dev/null
++++ b/lib/add_instagram_query.ipynb
+@@ -0,0 +1,271 @@
++{
++ "cells": [
++  {
++   "cell_type": "code",
++   "execution_count": 3,
++   "metadata": {},
++   "outputs": [
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
++      "loaded connections\n",
++      "Unsplash model loaded\n"
++     ]
++    }
++   ],
++   "source": [
++    "import connections as con\n",
++    "import parser\n",
++    "import os\n",
++    "from subprocess import Popen, PIPE\n",
++    "import sys\n",
++    "import shlex\n",
++    "import pandas as pd\n",
++    "\n",
++    "import shutil\n",
++    "import parser__\n",
++    "import pymysql\n",
++    "import pymysql.cursors\n",
++    "import json\n",
++    "import numpy as np\n",
++    "\n",
++    "from pandas.io import sql\n",
++    "import MySQLdb\n",
++    "\n",
++    "instagram_user =os.environ['INSTAGRAM_USER']\n",
++    "instagram_pass = os.environ['INSTAGRAM_PASS']\n",
++    "\n",
++    "import os\n",
++    "sql_user =os.environ['SQL_USER']\n",
++    "sql_pass = os.environ['SQL_PASS']\n",
++    "\n",
++    "model = parser__.ImageParser()\n",
++    "\n",
++    "\n",
++    "def copytree(src, dst, symlinks=False, ignore=None):\n",
++    "    for item in os.listdir(src):\n",
++    "        s = os.path.join(src, item)\n",
++    "        d = os.path.join(dst, item)\n",
++    "        if os.path.isdir(s):\n",
++    "            shutil.copytree(s, d, symlinks, ignore)\n",
++    "        else:\n",
++    "            shutil.copy2(s, d)\n",
++    "\n",
++    "def run_shell(cmd):\n",
++    "    \"\"\"\n",
++    "    Execute the external command and get its exitcode, stdout and stderr.\n",
++    "    \"\"\"\n",
++    "    args = shlex.split(cmd)\n",
++    "\n",
++    "    proc = Popen(args, stdout=PIPE, stderr=PIPE,shell=True)\n",
++    "    out, err = proc.communicate()\n",
++    "    exitcode = proc.returncode\n",
++    "    #\n",
++    "    #return exitcode, out, err\n",
++    "    return out.decode()\n",
++    "    \n",
++    "\n",
++    "\n"
++   ]
++  },
++  {
++   "cell_type": "code",
++   "execution_count": 4,
++   "metadata": {},
++   "outputs": [],
++   "source": [
++    "def check_for_instagram_user(username):\n",
++    "    '''\n",
++    "    Run scraper to check for user name\n",
++    "    '''\n",
++    "    cmd = 'instagram-scraper ' + str(username).strip() + ' -u '+ instagram_user + ' -p ' + instagram_pass + ' --maximum 1'\n",
++    "    response = run_shell(cmd)\n",
++    "    import shutil\n",
++    "    try:\n",
++    "        shutil.rmtree(username)\n",
++    "        print('{} exists'.format(username))\n",
++    "        return True\n",
++    "    except :\n",
++    "        return False\n",
++    "    \n",
++    "def download_instagram_user(username,maximum_downloads):\n",
++    "    '''\n",
++    "    Proceed to do an actual download of the instagram user account\n",
++    "    '''\n",
++    "    cmd = 'instagram-scraper ' + str(username).strip() + ' -u '+ instagram_user + ' -p ' + instagram_pass + ' --maximum {}'.format(maximum_downloads)\n",
++    "    response = run_shell(cmd)\n",
++    "    \n",
++    "   \n",
++    "    dst = '../instagram_accounts/'+username \n",
++    "    thumb_path = '../instagram_accounts/'+username +'/thumbs'\n",
++    "    \n",
++    "\n",
++    "    \n",
++    "    try:  \n",
++    "        os.mkdir(dst)\n",
++    "       \n",
++    "    except OSError:  \n",
++    "        print (\"Creation of the directory %s failed\" % dst)\n",
++    "    else:  \n",
++    "        print (\"Successfully created the directory %s \" % dst)\n",
++    "    \n",
++    "    try:  \n",
++    "        os.mkdir(thumb_path)\n",
++    "       \n",
++    "    except OSError:  \n",
++    "        print (\"Creation of the directory %s failed\" % thumb_path)\n",
++    "    else:  \n",
++    "        print (\"Successfully created the directory %s \" % thumb_path)\n",
++    "        \n",
++    "        \n",
++    "         \n",
++    "    dst = '../instagram_accounts/'+username + '/' \n",
++    "    copytree(username, dst)\n",
++    "    \n",
++    "    import shutil\n",
++    "    try:\n",
++    "        shutil.rmtree(username)\n",
++    "        print('Finished downloading')\n",
++    "        return True\n",
++    "    except :\n",
++    "        print('There was an issue cleaning up the username directory. Check for current access.')\n",
++    "        return False\n",
++    "\n",
++    "\n",
++    "# If username exists, then send an ajax callback success alert, and update user's notificatins json dict\n",
++    "\n",
++    "def create_job_list(username):\n",
++    "    '''\n",
++    "    Walk through each of the files in the username search folder\n",
++    "    '''\n",
++    "   \n",
++    "    joblist = []\n",
++    "    filepath = '../instagram_accounts/'+username\n",
++    "    for filename in os.listdir(filepath):\n",
++    "        filepath_ = filepath+'/'+filename\n",
++    "        joblist.append(filepath_)\n",
++    "    return joblist\n",
++    "        \n",
++    "\n",
++    "def execute_job_list(joblist,username):\n",
++    "    '''\n",
++    "    In a future release, this will send jobs to celery queue\n",
++    "    '''\n",
++    "    \n",
++    "    image_array=[]\n",
++    "    json_details=[]\n",
++    "    for job in joblist:\n",
++    "\n",
++    "        output = model.predict_quality(job)\n",
++    "        image_array.append(job) # We need to reference the full filepaths easily here\n",
++    "        json_details.append(json.dumps(output))\n",
++    "    \n",
++    "    df = pd.DataFrame()\n",
++    "    \n",
++    "    df['image_filepath'] = np.array(image_array)\n",
++    "    df['json_details'] = np.array(json_details)\n",
++    "    \n",
++    "    connect=MySQLdb.connect(host=\"localhost\",\n",
++    "                       user=sql_user,\n",
++    "                      passwd=sql_pass,\n",
++    "                       db='instagram_accounts')\n",
++    "    \n",
++    "    df.to_sql(con=connect, name=username, if_exists='replace', flavor='mysql')\n",
++    "    return True\n",
++    "\n",
++    "#      1. In each, learn from all models. 2. Paste the json output into the user db name specific table \n",
++    "#      3. If the overall score is above .95, also put it in the favorites table with username\n"
++   ]
++  },
++  {
++   "cell_type": "code",
++   "execution_count": 5,
++   "metadata": {},
++   "outputs": [
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
++      "joeypilgrim exists\n",
++      "Creation of the directory ../instagram_accounts/joeypilgrim failed\n",
++      "Creation of the directory ../instagram_accounts/joeypilgrim/thumbs failed\n",
++      "Finished downloading\n",
++      "Loaded ../instagram_accounts/joeypilgrim/49789585_2006906882942892_9076619747449110528_n.jpg\n",
++      "(1200,)\n"
++     ]
++    },
++    {
++     "ename": "ValueError",
++     "evalue": "operands could not be broadcast together with shapes (1,1200) (1875,) (1,1200) ",
++     "output_type": "error",
++     "traceback": [
++      "\u001b[1;31m---------------------------------------------------------------------------\u001b[0m",
++      "\u001b[1;31mValueError\u001b[0m                                Traceback (most recent call last)",
++      "\u001b[1;32m<ipython-input-5-bd715734e0f0>\u001b[0m in \u001b[0;36m<module>\u001b[1;34m()\u001b[0m\n\u001b[0;32m      6\u001b[0m     \u001b[0mdownload_instagram_user\u001b[0m\u001b[1;33m(\u001b[0m\u001b[0musername\u001b[0m\u001b[1;33m,\u001b[0m\u001b[0mmaximum_downloads\u001b[0m\u001b[1;33m)\u001b[0m\u001b[1;33m\u001b[0m\u001b[0m\n\u001b[0;32m      7\u001b[0m     \u001b[0mjoblist\u001b[0m \u001b[1;33m=\u001b[0m \u001b[0mcreate_job_list\u001b[0m\u001b[1;33m(\u001b[0m\u001b[0musername\u001b[0m\u001b[1;33m)\u001b[0m\u001b[1;33m\u001b[0m\u001b[0m\n\u001b[1;32m----> 8\u001b[1;33m     \u001b[0mresult\u001b[0m \u001b[1;33m=\u001b[0m \u001b[0mexecute_job_list\u001b[0m\u001b[1;33m(\u001b[0m\u001b[0mjoblist\u001b[0m\u001b[1;33m,\u001b[0m\u001b[0musername\u001b[0m\u001b[1;33m)\u001b[0m\u001b[1;33m\u001b[0m\u001b[0m\n\u001b[0m\u001b[0;32m      9\u001b[0m \u001b[1;33m\u001b[0m\u001b[0m\n\u001b[0;32m     10\u001b[0m \u001b[0mprint\u001b[0m\u001b[1;33m(\u001b[0m\u001b[0mresult\u001b[0m\u001b[1;33m)\u001b[0m\u001b[1;33m\u001b[0m\u001b[0m\n",
++      "\u001b[1;32m<ipython-input-4-08b0afb91607>\u001b[0m in \u001b[0;36mexecute_job_list\u001b[1;34m(joblist, username)\u001b[0m\n\u001b[0;32m     81\u001b[0m     \u001b[1;32mfor\u001b[0m \u001b[0mjob\u001b[0m \u001b[1;32min\u001b[0m \u001b[0mjoblist\u001b[0m\u001b[1;33m:\u001b[0m\u001b[1;33m\u001b[0m\u001b[0m\n\u001b[0;32m     82\u001b[0m \u001b[1;33m\u001b[0m\u001b[0m\n\u001b[1;32m---> 83\u001b[1;33m         \u001b[0moutput\u001b[0m \u001b[1;33m=\u001b[0m \u001b[0mmodel\u001b[0m\u001b[1;33m.\u001b[0m\u001b[0mpredict_quality\u001b[0m\u001b[1;33m(\u001b[0m\u001b[0mjob\u001b[0m\u001b[1;33m)\u001b[0m\u001b[1;33m\u001b[0m\u001b[0m\n\u001b[0m\u001b[0;32m     84\u001b[0m         \u001b[0mimage_array\u001b[0m\u001b[1;33m.\u001b[0m\u001b[0mappend\u001b[0m\u001b[1;33m(\u001b[0m\u001b[0mjob\u001b[0m\u001b[1;33m)\u001b[0m \u001b[1;31m# We need to reference the full filepaths easily here\u001b[0m\u001b[1;33m\u001b[0m\u001b[0m\n\u001b[0;32m     85\u001b[0m         \u001b[0mjson_details\u001b[0m\u001b[1;33m.\u001b[0m\u001b[0mappend\u001b[0m\u001b[1;33m(\u001b[0m\u001b[0mjson\u001b[0m\u001b[1;33m.\u001b[0m\u001b[0mdumps\u001b[0m\u001b[1;33m(\u001b[0m\u001b[0moutput\u001b[0m\u001b[1;33m)\u001b[0m\u001b[1;33m)\u001b[0m\u001b[1;33m\u001b[0m\u001b[0m\n",
++      "\u001b[1;32m~\\Desktop\\jup\\image-curator\\lib\\parser__.py\u001b[0m in \u001b[0;36mpredict_quality\u001b[1;34m(self, filepath)\u001b[0m\n\u001b[0;32m    209\u001b[0m         \u001b[1;32mfor\u001b[0m \u001b[0mi\u001b[0m \u001b[1;32min\u001b[0m \u001b[0mrange\u001b[0m\u001b[1;33m(\u001b[0m\u001b[0mlen\u001b[0m\u001b[1;33m(\u001b[0m\u001b[0mself\u001b[0m\u001b[1;33m.\u001b[0m\u001b[0mx\u001b[0m\u001b[1;33m)\u001b[0m\u001b[1;33m)\u001b[0m\u001b[1;33m:\u001b[0m\u001b[1;33m\u001b[0m\u001b[0m\n\u001b[0;32m    210\u001b[0m             \u001b[0mprint\u001b[0m\u001b[1;33m(\u001b[0m\u001b[0mself\u001b[0m\u001b[1;33m.\u001b[0m\u001b[0mx\u001b[0m\u001b[1;33m[\u001b[0m\u001b[0mi\u001b[0m\u001b[1;33m]\u001b[0m\u001b[1;33m.\u001b[0m\u001b[0mshape\u001b[0m\u001b[1;33m)\u001b[0m\u001b[1;33m\u001b[0m\u001b[0m\n\u001b[1;32m--> 211\u001b[1;33m             \u001b[0mlookslikefilm_color\u001b[0m\u001b[1;33m.\u001b[0m\u001b[0mappend\u001b[0m\u001b[1;33m(\u001b[0m \u001b[0mself\u001b[0m\u001b[1;33m.\u001b[0m\u001b[0mlookslikefilm_model\u001b[0m\u001b[1;33m.\u001b[0m\u001b[0mpredict\u001b[0m\u001b[1;33m(\u001b[0m\u001b[1;33m[\u001b[0m\u001b[0mself\u001b[0m\u001b[1;33m.\u001b[0m\u001b[0mx\u001b[0m\u001b[1;33m[\u001b[0m\u001b[0mi\u001b[0m\u001b[1;33m]\u001b[0m\u001b[1;33m]\u001b[0m\u001b[1;33m)\u001b[0m \u001b[1;33m)\u001b[0m\u001b[1;33m\u001b[0m\u001b[0m\n\u001b[0m\u001b[0;32m    212\u001b[0m             \u001b[0munsplash_color\u001b[0m\u001b[1;33m.\u001b[0m\u001b[0mappend\u001b[0m\u001b[1;33m(\u001b[0m \u001b[0mself\u001b[0m\u001b[1;33m.\u001b[0m\u001b[0munsplash_model\u001b[0m\u001b[1;33m.\u001b[0m\u001b[0mpredict\u001b[0m\u001b[1;33m(\u001b[0m\u001b[1;33m[\u001b[0m\u001b[0mself\u001b[0m\u001b[1;33m.\u001b[0m\u001b[0mx\u001b[0m\u001b[1;33m[\u001b[0m\u001b[0mi\u001b[0m\u001b[1;33m]\u001b[0m\u001b[1;33m]\u001b[0m\u001b[1;33m)\u001b[0m \u001b[1;33m)\u001b[0m\u001b[1;33m\u001b[0m\u001b[0m\n\u001b[0;32m    213\u001b[0m         \u001b[0mbin_count\u001b[0m\u001b[1;33m=\u001b[0m\u001b[0mlen\u001b[0m\u001b[1;33m(\u001b[0m\u001b[0mself\u001b[0m\u001b[1;33m.\u001b[0m\u001b[0mx\u001b[0m\u001b[1;33m)\u001b[0m\u001b[1;33m\u001b[0m\u001b[0m\n",
++      "\u001b[1;32mD:\\anaconda\\lib\\site-packages\\sklearn\\utils\\metaestimators.py\u001b[0m in \u001b[0;36m<lambda>\u001b[1;34m(*args, **kwargs)\u001b[0m\n\u001b[0;32m    113\u001b[0m \u001b[1;33m\u001b[0m\u001b[0m\n\u001b[0;32m    114\u001b[0m         \u001b[1;31m# lambda, but not partial, allows help() to work with update_wrapper\u001b[0m\u001b[1;33m\u001b[0m\u001b[1;33m\u001b[0m\u001b[0m\n\u001b[1;32m--> 115\u001b[1;33m         \u001b[0mout\u001b[0m \u001b[1;33m=\u001b[0m \u001b[1;32mlambda\u001b[0m \u001b[1;33m*\u001b[0m\u001b[0margs\u001b[0m\u001b[1;33m,\u001b[0m \u001b[1;33m**\u001b[0m\u001b[0mkwargs\u001b[0m\u001b[1;33m:\u001b[0m \u001b[0mself\u001b[0m\u001b[1;33m.\u001b[0m\u001b[0mfn\u001b[0m\u001b[1;33m(\u001b[0m\u001b[0mobj\u001b[0m\u001b[1;33m,\u001b[0m \u001b[1;33m*\u001b[0m\u001b[0margs\u001b[0m\u001b[1;33m,\u001b[0m \u001b[1;33m**\u001b[0m\u001b[0mkwargs\u001b[0m\u001b[1;33m)\u001b[0m\u001b[1;33m\u001b[0m\u001b[0m\n\u001b[0m\u001b[0;32m    116\u001b[0m         \u001b[1;31m# update the docstring of the returned function\u001b[0m\u001b[1;33m\u001b[0m\u001b[1;33m\u001b[0m\u001b[0m\n\u001b[0;32m    117\u001b[0m         \u001b[0mupdate_wrapper\u001b[0m\u001b[1;33m(\u001b[0m\u001b[0mout\u001b[0m\u001b[1;33m,\u001b[0m \u001b[0mself\u001b[0m\u001b[1;33m.\u001b[0m\u001b[0mfn\u001b[0m\u001b[1;33m)\u001b[0m\u001b[1;33m\u001b[0m\u001b[0m\n",
++      "\u001b[1;32mD:\\anaconda\\lib\\site-packages\\sklearn\\pipeline.py\u001b[0m in \u001b[0;36mpredict\u001b[1;34m(self, X)\u001b[0m\n\u001b[0;32m    304\u001b[0m         \u001b[1;32mfor\u001b[0m \u001b[0mname\u001b[0m\u001b[1;33m,\u001b[0m \u001b[0mtransform\u001b[0m \u001b[1;32min\u001b[0m \u001b[0mself\u001b[0m\u001b[1;33m.\u001b[0m\u001b[0msteps\u001b[0m\u001b[1;33m[\u001b[0m\u001b[1;33m:\u001b[0m\u001b[1;33m-\u001b[0m\u001b[1;36m1\u001b[0m\u001b[1;33m]\u001b[0m\u001b[1;33m:\u001b[0m\u001b[1;33m\u001b[0m\u001b[0m\n\u001b[0;32m    305\u001b[0m             \u001b[1;32mif\u001b[0m \u001b[0mtransform\u001b[0m \u001b[1;32mis\u001b[0m \u001b[1;32mnot\u001b[0m \u001b[1;32mNone\u001b[0m\u001b[1;33m:\u001b[0m\u001b[1;33m\u001b[0m\u001b[0m\n\u001b[1;32m--> 306\u001b[1;33m                 \u001b[0mXt\u001b[0m \u001b[1;33m=\u001b[0m \u001b[0mtransform\u001b[0m\u001b[1;33m.\u001b[0m\u001b[0mtransform\u001b[0m\u001b[1;33m(\u001b[0m\u001b[0mXt\u001b[0m\u001b[1;33m)\u001b[0m\u001b[1;33m\u001b[0m\u001b[0m\n\u001b[0m\u001b[0;32m    307\u001b[0m         \u001b[1;32mreturn\u001b[0m \u001b[0mself\u001b[0m\u001b[1;33m.\u001b[0m\u001b[0msteps\u001b[0m\u001b[1;33m[\u001b[0m\u001b[1;33m-\u001b[0m\u001b[1;36m1\u001b[0m\u001b[1;33m]\u001b[0m\u001b[1;33m[\u001b[0m\u001b[1;33m-\u001b[0m\u001b[1;36m1\u001b[0m\u001b[1;33m]\u001b[0m\u001b[1;33m.\u001b[0m\u001b[0mpredict\u001b[0m\u001b[1;33m(\u001b[0m\u001b[0mXt\u001b[0m\u001b[1;33m)\u001b[0m\u001b[1;33m\u001b[0m\u001b[0m\n\u001b[0;32m    308\u001b[0m \u001b[1;33m\u001b[0m\u001b[0m\n",
++      "\u001b[1;32mD:\\anaconda\\lib\\site-packages\\sklearn\\preprocessing\\data.py\u001b[0m in \u001b[0;36mtransform\u001b[1;34m(self, X, y, copy)\u001b[0m\n\u001b[0;32m    690\u001b[0m         \u001b[1;32melse\u001b[0m\u001b[1;33m:\u001b[0m\u001b[1;33m\u001b[0m\u001b[0m\n\u001b[0;32m    691\u001b[0m             \u001b[1;32mif\u001b[0m \u001b[0mself\u001b[0m\u001b[1;33m.\u001b[0m\u001b[0mwith_mean\u001b[0m\u001b[1;33m:\u001b[0m\u001b[1;33m\u001b[0m\u001b[0m\n\u001b[1;32m--> 692\u001b[1;33m                 \u001b[0mX\u001b[0m \u001b[1;33m-=\u001b[0m \u001b[0mself\u001b[0m\u001b[1;33m.\u001b[0m\u001b[0mmean_\u001b[0m\u001b[1;33m\u001b[0m\u001b[0m\n\u001b[0m\u001b[0;32m    693\u001b[0m             \u001b[1;32mif\u001b[0m \u001b[0mself\u001b[0m\u001b[1;33m.\u001b[0m\u001b[0mwith_std\u001b[0m\u001b[1;33m:\u001b[0m\u001b[1;33m\u001b[0m\u001b[0m\n\u001b[0;32m    694\u001b[0m                 \u001b[0mX\u001b[0m \u001b[1;33m/=\u001b[0m \u001b[0mself\u001b[0m\u001b[1;33m.\u001b[0m\u001b[0mscale_\u001b[0m\u001b[1;33m\u001b[0m\u001b[0m\n",
++      "\u001b[1;31mValueError\u001b[0m: operands could not be broadcast together with shapes (1,1200) (1875,) (1,1200) "
++     ]
++    }
++   ],
++   "source": [
++    "username = 'joeypilgrim'\n",
++    "\n",
++    "check_if_exists = check_for_instagram_user(username)\n",
++    "if check_if_exists==True:\n",
++    "    maximum_downloads = 10\n",
++    "    download_instagram_user(username,maximum_downloads)\n",
++    "    joblist = create_job_list(username)\n",
++    "    result = execute_job_list(joblist,username)\n",
++    "    \n",
++    "print(result)"
++   ]
++  },
++  {
++   "cell_type": "code",
++   "execution_count": null,
++   "metadata": {},
++   "outputs": [],
++   "source": []
++  },
++  {
++   "cell_type": "code",
++   "execution_count": null,
++   "metadata": {},
++   "outputs": [],
++   "source": []
++  },
++  {
++   "cell_type": "code",
++   "execution_count": null,
++   "metadata": {},
++   "outputs": [],
++   "source": []
++  }
++ ],
++ "metadata": {
++  "kernelspec": {
++   "display_name": "Python 3",
++   "language": "python",
++   "name": "python3"
++  },
++  "language_info": {
++   "codemirror_mode": {
++    "name": "ipython",
++    "version": 3
++   },
++   "file_extension": ".py",
++   "mimetype": "text/x-python",
++   "name": "python",
++   "nbconvert_exporter": "python",
++   "pygments_lexer": "ipython3",
++   "version": "3.6.5"
++  }
++ },
++ "nbformat": 4,
++ "nbformat_minor": 2
++}
+diff --git a/lib/connections.py b/lib/connections.py
+index 711b279..7c1753f 100644
+--- a/lib/connections.py
++++ b/lib/connections.py
+@@ -6,14 +6,16 @@ import json
+ import pandas as pd
+ import hashlib
+ import datetime
+-
++import os
++sql_user =os.environ['SQL_USER']
++sql_pass = os.environ['SQL_PASS']
+ 
+ def get_connection(db_):
+     ''' Prepares database-specific connection, which is used to be passed into sql connection functions. Expects a database name string.
+     '''
+     connect = pymysql.connect(host='localhost',
+-                                 user='user_insert',
+-                                 password='EhtcThisMachine!',
++                                 user=sql_user,
++                                 password=sql_pass,
+                                  db=db_,
+                                  charset='utf8mb4',
+                                  cursorclass=pymysql.cursors.DictCursor)
+diff --git a/lib/convert_flickr.py b/lib/convert_flickr.py
+index 5d64983..15ee267 100644
+--- a/lib/convert_flickr.py
++++ b/lib/convert_flickr.py
+@@ -8,11 +8,13 @@ import parser__ as p
+ 
+ 
+ 
++
+ class ImageData(p.ImageParser):
+     '''This will hold the main frame data in between each loop of the fill function
+     '''
+     def __init__(self,img):
+         self.img = img.copy()
++        super().__init__()
+ 
+     def get_metadata(self,filename):
+ 
+@@ -45,23 +47,10 @@ for filename in os.listdir('../flickr/images'):
+     try:
+         imagedata = ImageData(img)
+     except AttributeError:
++
+         continue
+-    imagedata.get_metadata(filename.split('.')[0])
+-    imagedata.convolution_strips({
+-                        'operation':'insert_table',
+-                        'img':None,
+-                        'table':'flickr_convolution',
+-                        'filters':[''],
+-                        'size':25
+-                        })
+ 
+-    img = cv2.imread(filepath)
+-    imagedata = ImageData(img)
+-    imagedata.get_metadata(filename.split('.')[0])
+-    imagedata.convolution_strips({
+-                        'operation':'insert_table',
+-                        'img':None,
+-                        'table':'flickr_grayscale',
+-                        'filters':['grayscale_high_contrast'],
+-                        'size':50
+-                        })
++
++    from pprint import pprint
++    #pprint(vars(imagedata))
++    imagedata.import_training_data('flickr',filename,img)
+diff --git a/lib/convert_imgur.py b/lib/convert_imgur.py
+index 72f2b72..13eda42 100644
+--- a/lib/convert_imgur.py
++++ b/lib/convert_imgur.py
+@@ -13,6 +13,7 @@ class ImageData(p.ImageParser):
+     '''
+     def __init__(self,img):
+         self.img = img.copy()
++        super().__init__()
+ 
+     def get_metadata(self,filename):
+ 
+@@ -48,22 +49,4 @@ for filename in os.listdir('../imgur/images'):
+ 
+     img = cv2.imread(filepath)
+     imagedata = ImageData(img)
+-    imagedata.get_metadata(filename.split('.')[0])
+-    imagedata.convolution_strips({
+-                        'operation':'insert_table',
+-                        'img':None,
+-                        'table':'imgur_convolution',
+-                        'filters':[''],
+-                        'size':25
+-                        })
+-
+-    img = cv2.imread(filepath)
+-    imagedata = ImageData(img)
+-    imagedata.get_metadata(filename.split('.')[0])
+-    imagedata.convolution_strips({
+-                        'operation':'insert_table',
+-                        'img':None,
+-                        'table':'imgur_grayscale',
+-                        'filters':['grayscale_high_contrast'],
+-                        'size':50
+-                        })
++    imagedata.import_training_data('imgur',filename,img)
+diff --git a/lib/convert_lookslikefilm.py b/lib/convert_lookslikefilm.py
+index 5c4d1d3..a574614 100644
+--- a/lib/convert_lookslikefilm.py
++++ b/lib/convert_lookslikefilm.py
+@@ -13,6 +13,7 @@ class ImageData(p.ImageParser):
+     '''
+     def __init__(self,img):
+         self.img = img.copy()
++        super().__init__()
+ 
+     def get_metadata(self,filename):
+ 
+@@ -48,22 +49,4 @@ for filename in os.listdir('../lookslikefilm/images'):
+         imagedata = ImageData(img)
+     except AttributeError:
+         continue
+-    imagedata.get_metadata(filename.split('.')[0])
+-    imagedata.convolution_strips({
+-                        'operation':'insert_table',
+-                        'img':None,
+-                        'table':'lookslikefilm_convolution',
+-                        'filters':[''],
+-                        'size':25
+-                        })
+-
+-    img = cv2.imread(filepath)
+-    imagedata = ImageData(img)
+-    imagedata.get_metadata(filename.split('.')[0])
+-    imagedata.convolution_strips({
+-                        'operation':'insert_table',
+-                        'img':None,
+-                        'table':'lookslikefilm_grayscale',
+-                        'filters':['grayscale_high_contrast'],
+-                        'size':50
+-                        })
++    imagedata.import_training_data('lookslikefilm',filename,img)
+diff --git a/lib/convert_start.py b/lib/convert_start.py
+index 6887c2b..a613c73 100644
+--- a/lib/convert_start.py
++++ b/lib/convert_start.py
+@@ -1,11 +1,28 @@
+ import time
++import model_creator as mc
+ 
+-t1 = time.time()
+-import convert_flickr
+-import convert_lookslikefilm
+-import convert_imgur
+-import convert_unsplash
+ 
+-t2 = time.time()
+ 
+-print("Took {} seconds".format(t2-t1))
++
++
++if __name__ == "__main__":
++
++
++    # Flush history in db
++    t1 = time.time()
++    import convert_flickr
++    import convert_lookslikefilm
++    import convert_imgur
++    import convert_unsplash
++    t2 = time.time()
++    print("Took {} seconds for training data generation".format(t2-t1))
++
++    # Flush models in db
++    t1 = time.time()
++
++    mc.start_model('lookslikefilm','grayscale')
++    mc.start_model('lookslikefilm','convolution')
++    mc.start_model('unsplash','grayscale')
++    mc.start_model('unsplash','convolution')
++    t2 = time.time()
++    print("Took {} seconds for model generation".format(t2-t1))
+diff --git a/lib/convert_unsplash.py b/lib/convert_unsplash.py
+index cb19981..747ee4d 100644
+--- a/lib/convert_unsplash.py
++++ b/lib/convert_unsplash.py
+@@ -12,6 +12,7 @@ class ImageData(p.ImageParser):
+     '''
+     def __init__(self,img):
+         self.img = img.copy()
++        super().__init__()
+ 
+     def get_metadata(self,filename):
+ 
+@@ -49,22 +50,4 @@ for filename in os.listdir('../unsplash/images'):
+ 
+     img = cv2.imread(filepath)
+     imagedata = ImageData(img)
+-    imagedata.get_metadata(filename.split('.')[0])
+-    imagedata.convolution_strips({
+-                        'operation':'insert_table',
+-                        'img':None,
+-                        'table':'unsplash_convolution',
+-                        'filters':[''],
+-                        'size':25
+-                        })
+-
+-    img = cv2.imread(filepath)
+-    imagedata = ImageData(img)
+-    imagedata.get_metadata(filename.split('.')[0])
+-    imagedata.convolution_strips({
+-                        'operation':'insert_table',
+-                        'img':None,
+-                        'table':'unsplash_grayscale',
+-                        'filters':['grayscale_high_contrast'],
+-                        'size':50
+-                        })
++    imagedata.import_training_data('unsplash',filename,img)
+diff --git a/lib/filters.py b/lib/filters.py
+index 54240c4..a963592 100644
+--- a/lib/filters.py
++++ b/lib/filters.py
+@@ -2,8 +2,8 @@ import numpy as np
+ 
+ def runfilter(img,filter):
+ 
+-    if filter=='grayscale_high_contrast':
+-        img = grayscale_high_contrast(img)
++    if filter=='grayscale':
++        img = grayscale(img)
+ 
+     if filter=='': # Default
+         pass
+@@ -13,21 +13,22 @@ def runfilter(img,filter):
+ 
+ 
+ 
+-def grayscale_high_contrast(img):
++def grayscale(img):
+     '''expects the img in bgr mode, but will convert to grayscale
+     '''
+ 
+     import cv2
+ 
+     new_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+-    array_alpha = np.array([2.5])
+-    array_beta = np.array([-50.0])
++    # uncomment these for higher contrast
++    #array_alpha = np.array([2.5])
++    #array_beta = np.array([-50.0])
+ 
+     # add a beta value to every pixel
+-    cv2.add(new_img, array_beta, new_img)
++    #cv2.add(new_img, array_beta, new_img)
+ 
+     # multiply every pixel value by alpha
+-    cv2.multiply(new_img, array_alpha, new_img)
++    #cv2.multiply(new_img, array_alpha, new_img)
+ 
+ 
+     return new_img
+diff --git a/lib/instagram_parser.py b/lib/instagram_parser.py
+new file mode 100644
+index 0000000..7909500
+--- /dev/null
++++ b/lib/instagram_parser.py
+@@ -0,0 +1,20 @@
++
++
++
++
++# run scraper to check for user name
++
++# If username exists, then send an ajax callback success alert, and update user's notificatins json dict
++
++# Proceed to do an actual download of the instagram user account
++
++# Then os.walk through each of the files in the $insta_account search folder
++
++#create job list array.
++
++# Create table for insta username
++
++# multi process pool works on list comprehension, in scope of instauser table
++
++#      1. In each, learn from all models. 2. Paste the json output into the user db name specific table
++#      3. If the overall score is above .95, also put it in the favorites table with username
+diff --git a/lib/model_creator.ipynb b/lib/model_creator.ipynb
+index a0acc3c..36a58ef 100644
+--- a/lib/model_creator.ipynb
++++ b/lib/model_creator.ipynb
+@@ -39,17 +39,18 @@
+     "        print('Loaded json models')\n",
+     "    \n",
+     "    \n",
+-    "def load_data():\n",
++    "def load_data(target_name,target_type):\n",
+     "    connection = con.get_connection('image_profile')\n",
+     "    control = X_data(connection,'flickr_convolution')    \n",
+     "    connection.close()\n",
+     "    control.df.loc[control.df['label']=='flickr' ,'y'] = 0\n",
+     "\n",
++    "    table_name = target_name + '_' + target_type\n",
+     "\n",
+     "    connection = con.get_connection('image_profile')\n",
+-    "    target = X_data(connection,'unsplash_convolution')    \n",
++    "    target = X_data(connection,table_name)    \n",
+     "    connection.close()\n",
+-    "    target.df.loc[target.df['label']=='unsplash' ,'y'] = 1\n",
++    "    target.df.loc[target.df['label']==target_name ,'y'] = 1\n",
+     "\n",
+     "    # Remove sample bias\n",
+     "    target_len = len(target.df.x.values)\n",
+@@ -92,7 +93,7 @@
+     "    \n",
+     "    return X_train, X_test, y_train, y_test\n",
+     "\n",
+-    "def generate_model(X_train, X_test, y_train, y_test):\n",
++    "def generate_model(X_train, X_test, y_train, y_test,target_name,target_type):\n",
+     "\n",
+     "    print('Training size:',len(X_train))\n",
+     "    print('Testing size:',len(X_test))\n",
+@@ -146,9 +147,11 @@
+     "    y_pred = model.predict(X_test)\n",
+     "    from sklearn.metrics import classification_report\n",
+     "    print(classification_report(y_test, y_pred))\n",
+-    "\n",
++    "    \n",
++    "    model_name = '../models/' +target_name + '_' + target_type + '.pickle'\n",
++    "    \n",
+     "    from sklearn.externals import joblib\n",
+-    "    joblib.dump(model, '../models/unsplash_convolution.pickle')\n",
++    "    joblib.dump(model, model_name)\n",
+     "    \n",
+     "    return True\n",
+     "\n",
+@@ -163,8 +166,10 @@
+     "        unserialized_data = pickle.load(handle)\n",
+     "    return unserialized_data\n",
+     "\n",
+-    "\n",
+-    "\n"
++    "def start_model(target_name,target_type):\n",
++    "    X,y = load_data(target_name,target_type)\n",
++    "    X_train, X_test, y_train, y_test = test_split(X,y)\n",
++    "    generate_model(X_train, X_test, y_train, y_test,target_name,target_type)"
+    ]
+   },
+   {
+@@ -185,7 +190,7 @@
+     }
+    ],
+    "source": [
+-    "X,y = load_data()"
++    "#X,y = load_data()"
+    ]
+   },
+   {
+@@ -194,7 +199,7 @@
+    "metadata": {},
+    "outputs": [],
+    "source": [
+-    "X_train, X_test, y_train, y_test = test_split(X,y)"
++    "#X_train, X_test, y_train, y_test = test_split(X,y)"
+    ]
+   },
+   {
+@@ -262,7 +267,7 @@
+     }
+    ],
+    "source": [
+-    "generate_model(X_train, X_test, y_train, y_test)"
++    "#generate_model(X_train, X_test, y_train, y_test)"
+    ]
+   },
+   {
+diff --git a/lib/model_creator.py b/lib/model_creator.py
+index 5baa50f..101dc92 100644
+--- a/lib/model_creator.py
++++ b/lib/model_creator.py
+@@ -1,7 +1,7 @@
+ 
+ # coding: utf-8
+ 
+-# In[1]:
++# In[32]:
+ 
+ 
+ import connections as con
+@@ -11,10 +11,10 @@ import os
+ import pandas as pd
+ import numpy as np
+ import pickle
+-
++from sklearn.model_selection import train_test_split
+ def json_loads(a):
+     return np.array(json.loads(a))
+-    
++
+ class X_data:
+     ''' This object will contain the models active from the database
+         active_dfs = Active_dfs()
+@@ -23,63 +23,84 @@ class X_data:
+     def __init__(self,connection,table):
+         ''' This is run whenever the object is first created
+         '''
+-        
++
+         self.df =  con.get_id_strips(connection,table)
+         self.df['x'] = self.df.apply(lambda row: json_loads(row['x']), axis=1)
+         self.df['tags'] = self.df.apply(lambda row: json_loads(row['tags']), axis=1)
+         print('Loaded json models')
+-    
+-    
+-def load_data():
++
++
++def load_data(target_name,target_type):
+     connection = con.get_connection('image_profile')
+-    imgur = X_data(connection,'imgur_convolution')    
++    control_table = 'flickr_' + target_type
++    control = X_data(connection,control_table)
++
++
++    control_x, X_test, control_y, y_test = train_test_split(
++        control.df.x.values, np.zeros(len(control.df.x.values)), test_size=0.05, random_state=42,shuffle=True)
+     connection.close()
+-    imgur.df.loc[imgur.df['label']=='imgur' ,'y'] = 0
++    
++
+ 
++    table_name = target_name + '_' + target_type
+ 
+     connection = con.get_connection('image_profile')
+-    unsplash = X_data(connection,'unsplash_convolution')    
++    target = X_data(connection,table_name)
+     connection.close()
+-    unsplash.df.loc[unsplash.df['label']=='unsplash' ,'y'] = 1
++    target.df.loc[target.df['label']==target_name ,'y'] = 1
++
++    # Remove sample bias
++    target_len = len(target.df.x.values)
++    control_len = len(control.df.x.values)
++    print('target length',target_len)
++    print('control length',control_len)
++
++    if target_len > control_len:
++        max_len = control_len -1
++    else:
++        max_len = target_len -1
++    print('max length',max_len)
++    X = np.concatenate((control_x[0:max_len], target.df.x.values[0:max_len]), axis=0)
++    y = np.concatenate((control_y[0:max_len], target.df.y.values[0:max_len]), axis=0)
++
++
+ 
+-    X = np.concatenate((imgur.df.x.values, unsplash.df.x.values), axis=0)
+-    y = np.concatenate((imgur.df.y.values, unsplash.df.y.values), axis=0)
+-    
+     return X,y
+ 
+ def test_split(X,y):
+     # This fixes the 'setting an array index with a sequence' ValueError
++
+     arr = np.zeros(len(X),dtype=object)
+-    for i in range(len(X)): 
++    for i in range(len(X)):
+         arr[i]=X[i]
+ 
+     arr = np.array(arr.tolist())
+     X = arr.reshape(len(X),len(X[0]))
+ 
+     arr = np.zeros(len(y),dtype=object)
+-    for i in range(len(y)): 
++    for i in range(len(y)):
+         arr[i]=y[i]
+ 
+     arr = np.array(arr.tolist())
+     y = arr.reshape(len(y),1)
+ 
+-    from sklearn.model_selection import train_test_split
++
+ 
+     X_train, X_test, y_train, y_test = train_test_split(
+         X, y, test_size=0.33, random_state=42,shuffle=True)
+-    
++
+     return X_train, X_test, y_train, y_test
+ 
+-def generate_model(X_train, X_test, y_train, y_test):
++def generate_model(X_train, X_test, y_train, y_test,target_name,target_type):
+ 
+     print('Training size:',len(X_train))
+     print('Testing size:',len(X_test))
+ 
+     from sklearn.preprocessing import StandardScaler
+-    sc = StandardScaler()  
++    sc = StandardScaler()
+ 
+     from sklearn.decomposition import PCA
+-    pca = PCA(0.95)  
++    pca = PCA(0.98)
+ 
+     from sklearn.ensemble import RandomForestClassifier
+     rf = RandomForestClassifier()
+@@ -91,20 +112,26 @@ def generate_model(X_train, X_test, y_train, y_test):
+     from sklearn.model_selection import RandomizedSearchCV
+     from sklearn.model_selection import GridSearchCV
+ 
+-    # Create the parameter grid based on the results of random search 
++
++
++    # Create the parameter grid based on the results of random search
+     param_grid = {
++        'pca__n_components': [0.89],
+         'rforest__bootstrap': [True],
+-        'rforest__max_depth': [80, 90, 100, 110],
+-        'rforest__max_features': [2],
++        'rforest__max_depth': [110],
++        'rforest__max_features': [0.3],
+         'rforest__min_samples_leaf': [3],
+-        'rforest__min_samples_split': [8, ],
+-        'rforest__n_estimators': [100, 200, 300]
++        'rforest__min_samples_split': [8],
++        'rforest__n_estimators': [1200]
+     }
+-    grid_search = GridSearchCV(pipeline, param_grid = param_grid,cv = 2, n_jobs = 1, verbose = 2)
++
++
++    grid_search = GridSearchCV(pipeline, param_grid = param_grid,cv = 2, n_jobs = 6, verbose = 2)
+ 
+     # Fit the grid search to the data
+     grid_search.fit(X_train, y_train)
+-    grid_search.best_params_
++
++
+ 
+     # best_params__ = {'bootstrap': True,
+     #                  'max_depth': 90,
+@@ -114,44 +141,81 @@ def generate_model(X_train, X_test, y_train, y_test):
+     #                  'n_estimators': 300}
+ 
+     model = grid_search.best_estimator_
++    print('best params:',grid_search.best_params_)
+     y_pred = model.predict(X_test)
+     from sklearn.metrics import classification_report
+     print(classification_report(y_test, y_pred))
+ 
+-    return pipeline
++    model_name = '../models/' +target_name + '_' + target_type + '.pickle'
++
++    from sklearn.externals import joblib
++    joblib.dump(model, model_name)
+ 
+-def store_model(model,filename):
+-    with open(filename, 'wb') as handle:
+-        pickle.dump(model, handle, protocol=pickle.HIGHEST_PROTOCOL)
+     return True
+ 
++# def store_model(dict_,filename):
++#     with open(filename, 'wb') as handle:
++#         pickle.dump(dict_, handle, protocol=pickle.HIGHEST_PROTOCOL)
++#     return True
++
+ def load_model(file):
+     # Load data (deserialize)
+     with open(file, 'rb') as handle:
+         unserialized_data = pickle.load(handle)
+     return unserialized_data
+ 
+-def create_quality_model():
+-    X,y = load_data()
++def start_model(target_name,target_type):
++    X,y = load_data(target_name,target_type)
+     X_train, X_test, y_train, y_test = test_split(X,y)
+-    model = generate_model(X_train, X_test, y_train, y_test)
+-    store_model(model,'../models/quality_model.pickle')
++    generate_model(X_train, X_test, y_train, y_test,target_name,target_type)
++
++
++# In[33]:
++
++
++#X,y = load_data()
++
++
++# In[34]:
++
+ 
++#X_train, X_test, y_train, y_test = test_split(X,y)
+ 
+-# In[2]:
+ 
++# In[35]:
+ 
+ 
++#generate_model(X_train, X_test, y_train, y_test)
+ 
+ 
+-# In[4]:
++# In[ ]:
+ 
+ 
++'''
++10x10
++best params: {
++'rforest__bootstrap': True,
++'rforest__max_depth': 110,
++'rforest__max_features': 2,
++'rforest__min_samples_leaf': 3,
++'rforest__min_samples_split': 8,
++'rforest__n_estimators': 300}
+ 
++'''
+ 
+ 
+-# In[5]:
++# In[ ]:
+ 
+ 
++'''
++25x25
++best params: {'pca__n_components': 0.89,
++              'rforest__bootstrap': True,
++              'rforest__max_depth': 110,
++              'rforest__max_features': 0.3,
++              'rforest__min_samples_leaf': 3,
++              'rforest__min_samples_split': 8,
++              'rforest__n_estimators': 1500}
+ 
+ 
++'''
+diff --git a/lib/parser__.py b/lib/parser__.py
+index 9756e91..8633cbb 100644
+--- a/lib/parser__.py
++++ b/lib/parser__.py
+@@ -8,6 +8,7 @@ import json
+ 
+ 
+ 
++
+ class ImageParser:
+ 
+     def __init__(self):
+@@ -17,7 +18,13 @@ class ImageParser:
+         self.unsplash_model = joblib.load('../models/unsplash_convolution.pickle')
+         self.lookslikefilm_grayscale = joblib.load('../models/lookslikefilm_grayscale.pickle')
+         self.unsplash_grayscale = joblib.load('../models/unsplash_grayscale.pickle')
+-        print('Unsplash model loaded')
++
++        self.side_min_size = 60
++        self.grayscale_size = 30
++        self.color_size = 20
++
++
++
+ 
+     def shrink(self,output_size):
+         '''
+@@ -36,6 +43,26 @@ class ImageParser:
+         return self
+ 
+ 
++    def generate_thumbnail(self,size,filepath):
++        self.width = len(self.img[0])
++        self.height = len(self.img)
++        if (self.width / self.height) > 1:
++            self.orientation = 'landscape'
++        if (self.width / self.height) < 1:
++            self.orientation = 'portrait'
++        if (self.width / self.height) == 1:
++            self.orientation = 'square'
++        self.shrink(size)
++
++        if 'instagram_accounts' in filepath:
++            username = filepath.split('/')[2]
++            parent = filepath.split('/')[0] + '/' + filepath.split('/')[1] + '/'
++            img_path = filepath.split('/')[3]
++            thumbpath = parent + username + '/thumbs/' + img_path
++        else:
++            thumbpath = 'static/images/downloads/thumbs/' + filepath.split('static/images/downloads/')[1]
++        cv2.imwrite(thumbpath,self.img)
++
+ 
+     def convolution_strips(self,operation_dict):
+         '''
+@@ -45,7 +72,7 @@ class ImageParser:
+                             'operation':['insert_table','classify_image']
+                             'img':None
+                             'table':[None,'imgur_convolution','unsplash_convolution']
+-                            'filters': ['grayscale_high_contrast']
++                            'filters': ['grayscale']
+                             'size': [any number between 2 and 253]
+                             }
+ 
+@@ -62,7 +89,7 @@ class ImageParser:
+             self.orientation = 'portrait'
+         if (self.width / self.height) == 1:
+             self.orientation = 'square'
+-        self.shrink(100)
++        self.shrink(self.side_min_size)
+ 
+ 
+         # Redefine size after shrinking image
+@@ -98,14 +125,18 @@ class ImageParser:
+                 if (i < len(self.h_ranges)-1) and (j < len(self.w_ranges)-1):
+                     arr1d = np.array([self.img[k][l] for l in range(self.w_ranges[j],self.w_ranges[j+1]) for k in range(self.h_ranges[i],self.h_ranges[i+1])]).ravel() # make an even
+ 
+-
+-
+                     if operation_dict['operation']=='classify_image':
+                         x.append(arr1d)
+ 
+                     if operation_dict['operation']=='insert_table':
+                         result = con.insert_strip(arr1d,self.metadata,self.orientation,strat_connection,table)
+ 
++                    print('h_range',self.h_ranges[i],'w_range',self.w_ranges[j])    
++                    print('i',i,'j',j)
++                    print('len',len(arr1d))
++
++
++
+         if operation_dict['operation']=='classify_image':
+             try:
+                 self.x = np.array(x)
+@@ -126,8 +157,33 @@ class ImageParser:
+         return self
+ 
+ 
++    def import_training_data(self,source,filename,img):
++
++        operation = 'insert_table'
++        table_color = '{}_convolution'.format(source)
++        table_grayscale = '{}_grayscale'.format(source)
+ 
+ 
++        self.img = img
++        self.get_metadata(filename.split('.')[0])
++        self.convolution_strips({
++                            'operation':operation,
++                            'img':None,
++                            'table':table_color,
++                            'filters':[''],
++                            'size':self.color_size
++                            })
++
++        self.img = img
++        self.get_metadata(filename.split('.')[0])
++        self.convolution_strips({
++                            'operation':operation,
++                            'img':None,
++                            'table':table_grayscale,
++                            'filters':['grayscale'],
++                            'size':self.grayscale_size
++                            })
++        return self
+ 
+     def predict_quality(self,filepath):
+         '''
+@@ -136,25 +192,26 @@ class ImageParser:
+         '''
+ 
+         # Color score
+-        img = cv2.imread(filepath)
++        self.img = cv2.imread(filepath)
++        self.generate_thumbnail(125,filepath)
++
+         self.convolution_strips({
+                             'operation':'classify_image',
+-                            'img':img,
++                            'img':self.img,
+                             'table':None,
+                             'filters':[''],
+-                            'size':25
++                            'size':self.color_size
+                             })
+         print('Loaded {}'.format(filepath))
+ 
+-        # Save the 100x100 px thumb
+-        thumbpath = 'static/images/downloads/thumbs/' + filepath.split('static/images/downloads/')[1]
+-        cv2.imwrite(thumbpath,self.img)
+ 
+         t1=time.time()
+         lookslikefilm_color = []
+         unsplash_color = []
+         t1=time.time()
++
+         for i in range(len(self.x)):
++            print(self.x[i].shape)
+             lookslikefilm_color.append( self.lookslikefilm_model.predict([self.x[i]]) )
+             unsplash_color.append( self.unsplash_model.predict([self.x[i]]) )
+         bin_count=len(self.x)
+@@ -170,8 +227,8 @@ class ImageParser:
+                             'operation':'classify_image',
+                             'img':img,
+                             'table':None,
+-                            'filters':['grayscale_high_contrast'],
+-                            'size':50
++                            'filters':['grayscale'],
++                            'size':self.grayscale_size
+                             })
+         print('Loaded {}'.format(filepath))
+ 
+diff --git a/lib/templates/home.html b/lib/templates/home.html
+index 7a23330..e2736b5 100644
+--- a/lib/templates/home.html
++++ b/lib/templates/home.html
+@@ -51,7 +51,7 @@
+ 
+ 
+     <footer>
+-    		<p><strong>Our AI curation imitates the best tastemakers in the world.</strong></p>
++    		<p><strong>AI curation that imitates the best tastemakers in the world.</strong></p>
+ 
+     </footer>
+ 
+-- 
+2.17.0.windows.1
+
+From e34bcb50d7725824d52e63ba3eaddfa2519a7772 Mon Sep 17 00:00:00 2001
+From: dscott <info@synapseproduction.com>
+Date: Mon, 11 Mar 2019 15:47:44 -0600
+Subject: [PATCH] Update README.md
+
+---
+ README.md | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/README.md b/README.md
+index 0460ef7..6f8b2f5 100644
+--- a/README.md
++++ b/README.md
+@@ -31,13 +31,12 @@ It has the ability to detect professional photos with a tolerance of 3-5% and pr
+ 
+ <img src="/snapshots/j1.png" width="680">
+ 
+-The interface features an easy-to-use interface where clients can easily drop and drop files to have them analyzed
++The app features an easy-to-use interface where clients can easily drag and drop files to have them analyzed.
+ 
+ <img src="/snapshots/h4.png" width="680">
+ 
+-The site is also customized for a special mobile experience that lets the user quickly curate pictures from their camera.
++The site is also customized for an intuitive mobile experience that lets the user quickly curate pictures from their camera.
+ 
+- Currently the project is in alpha, but the main engine is complete.
+  
+  <img src="/snapshots/h3.png" width="680">
+  
+-- 
+2.17.0.windows.1
+
