@@ -41,12 +41,15 @@ con.clear_table('imgur_grayscale')
 
 i=0
 for filename in os.listdir('../imgur/images'):
+    filepath = "../imgur/images/"+filename
+    print(filepath)
+    img = cv2.imread(filepath)
+    if i==0:
+        # Load once, then update
+        imagedata = ImageData(img)
+
     i+=1
     if i> 1900:
         break
-    filepath = "../imgur/images/"+filename
-    print(filepath)
 
-    img = cv2.imread(filepath)
-    imagedata = ImageData(img)
     imagedata.import_training_data('imgur',filename,img)

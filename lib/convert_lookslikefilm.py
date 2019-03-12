@@ -37,16 +37,15 @@ con.clear_table('lookslikefilm_grayscale')
 
 i=0
 for filename in os.listdir('../lookslikefilm/images'):
+    filepath = "../lookslikefilm/images/"+filename
+    print(filepath)
+    img = cv2.imread(filepath)
+    if i==0:
+        # Load once, then update
+        imagedata = ImageData(img)
 
     i+=1
     if i> 1900:
         break
-    filepath = "../lookslikefilm/images/"+filename
-    print(filepath)
 
-    img = cv2.imread(filepath)
-    try:
-        imagedata = ImageData(img)
-    except AttributeError:
-        continue
     imagedata.import_training_data('lookslikefilm',filename,img)

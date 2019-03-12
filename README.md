@@ -37,11 +37,11 @@ The app features an easy-to-use interface where clients can easily drag and drop
 
 The site is also customized for an intuitive mobile experience that lets the user quickly curate pictures from their camera.
 
- 
+
  <img src="/snapshots/h3.png" width="680">
- 
+
  # Machine Learning Pipeline
- 
- The pipeline currently combines several nodes of Principal Component Analysis, and Random Forest classifiers in a convoultion design to traverse image data. This allows for the model to stay flexible when handling unique image shapes.
- 
+
+ The pipeline currently combines several nodes of Principal Component Analysis, and Random Forest classifiers in a convolution design to traverse image data. This allows for the model to stay flexible when handling unique image shapes.
+
 Training data is currently around 90,000 samples and applies a broad variance.

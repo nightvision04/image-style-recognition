@@ -42,12 +42,15 @@ con.clear_table('unsplash_grayscale')
 
 i=0
 for filename in os.listdir('../unsplash/images'):
+    filepath = "../unsplash/images/"+filename
+    print(filepath)
+    img = cv2.imread(filepath)
+
+    if i==0:
+        # Load once, then update
+        imagedata = ImageData(img)
     i+=1
     if i> 1900:
         break
-    filepath = "../unsplash/images/"+filename
-    print(filepath)
 
-    img = cv2.imread(filepath)
-    imagedata = ImageData(img)
     imagedata.import_training_data('unsplash',filename,img)

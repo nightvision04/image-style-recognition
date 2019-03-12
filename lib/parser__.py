@@ -131,10 +131,6 @@ class ImageParser:
                     if operation_dict['operation']=='insert_table':
                         result = con.insert_strip(arr1d,self.metadata,self.orientation,strat_connection,table)
 
-                    print('h_range',self.h_ranges[i],'w_range',self.w_ranges[j])    
-                    print('i',i,'j',j)
-                    print('len',len(arr1d))
-
 
 
         if operation_dict['operation']=='classify_image':
@@ -162,7 +158,6 @@ class ImageParser:
         operation = 'insert_table'
         table_color = '{}_convolution'.format(source)
         table_grayscale = '{}_grayscale'.format(source)
-
 
         self.img = img
         self.get_metadata(filename.split('.')[0])
