@@ -39,7 +39,7 @@ def load_data(target_name,target_type):
     control_x, X_test, control_y, y_test = train_test_split(
         control.df.x.values, np.zeros(len(control.df.x.values)), test_size=0.05, random_state=42,shuffle=True)
     connection.close()
-    
+
 
 
     table_name = target_name + '_' + target_type
@@ -116,13 +116,13 @@ def generate_model(X_train, X_test, y_train, y_test,target_name,target_type):
 
     # Create the parameter grid based on the results of random search
     param_grid = {
-        'pca__n_components': [0.89],
+        'pca__n_components': [0.87,0.89,0.91,0.93,0.95],
         'rforest__bootstrap': [True],
-        'rforest__max_depth': [110],
+        'rforest__max_depth': [100,110],
         'rforest__max_features': [0.3],
         'rforest__min_samples_leaf': [3],
         'rforest__min_samples_split': [8],
-        'rforest__n_estimators': [1200]
+        'rforest__n_estimators': [1200,1400]
     }
 
 

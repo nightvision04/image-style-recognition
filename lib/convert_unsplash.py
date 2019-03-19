@@ -42,15 +42,18 @@ con.clear_table('unsplash_grayscale')
 
 i=0
 for filename in os.listdir('../unsplash/images'):
-    filepath = "../unsplash/images/"+filename
-    print(filepath)
-    img = cv2.imread(filepath)
 
-    if i==0:
-        # Load once, then update
-        imagedata = ImageData(img)
-    i+=1
-    if i> 1900:
-        break
+    # No support for gifs yet
+    if '.jpg' or '.png' or '.tiff' or '.bmp' in filename:
+        filepath = "../unsplash/images/"+filename
+        print(filepath)
+        img = cv2.imread(filepath)
 
-    imagedata.import_training_data('unsplash',filename,img)
+        if i==0:
+            # Load once, then update
+            imagedata = ImageData(img)
+        i+=1
+        if i> 1900:
+            break
+
+        imagedata.import_training_data('unsplash',filename,img)

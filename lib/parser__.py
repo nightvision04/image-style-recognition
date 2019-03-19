@@ -19,9 +19,9 @@ class ImageParser:
         self.lookslikefilm_grayscale = joblib.load('../models/lookslikefilm_grayscale.pickle')
         self.unsplash_grayscale = joblib.load('../models/unsplash_grayscale.pickle')
 
-        self.side_min_size = 60
-        self.grayscale_size = 30
-        self.color_size = 20
+        self.side_min_size = 90
+        self.grayscale_size = 45
+        self.color_size = 30
 
 
 
@@ -206,7 +206,7 @@ class ImageParser:
         t1=time.time()
 
         for i in range(len(self.x)):
-            print(self.x[i].shape)
+
             lookslikefilm_color.append( self.lookslikefilm_model.predict([self.x[i]]) )
             unsplash_color.append( self.unsplash_model.predict([self.x[i]]) )
         bin_count=len(self.x)
