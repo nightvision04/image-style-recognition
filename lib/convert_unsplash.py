@@ -48,6 +48,7 @@ for filename in os.listdir('../unsplash/images'):
         filepath = "../unsplash/images/"+filename
         print(filepath)
         img = cv2.imread(filepath)
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
         if i==0:
             # Load once, then update

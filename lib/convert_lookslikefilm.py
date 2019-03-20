@@ -37,12 +37,13 @@ con.clear_table('lookslikefilm_grayscale')
 
 i=0
 for filename in os.listdir('../lookslikefilm/images'):
-    
+
     # No support for gifs yet
     if '.jpg' or '.png' or '.tiff' or '.bmp' in filename:
         filepath = "../lookslikefilm/images/"+filename
         print(filepath)
         img = cv2.imread(filepath)
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
         if i==0:
             # Load once, then update
             imagedata = ImageData(img)

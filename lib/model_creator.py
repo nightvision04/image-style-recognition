@@ -100,7 +100,7 @@ def generate_model(X_train, X_test, y_train, y_test,target_name,target_type):
     sc = StandardScaler()
 
     from sklearn.decomposition import PCA
-    pca = PCA(0.98)
+    pca = PCA()
 
     from sklearn.ensemble import RandomForestClassifier
     rf = RandomForestClassifier()
@@ -116,13 +116,13 @@ def generate_model(X_train, X_test, y_train, y_test,target_name,target_type):
 
     # Create the parameter grid based on the results of random search
     param_grid = {
-        'pca__n_components': [0.87,0.89,0.91,0.93,0.95],
+        'pca__n_components': [0.87],
         'rforest__bootstrap': [True],
-        'rforest__max_depth': [100,110],
+        'rforest__max_depth': [110],
         'rforest__max_features': [0.3],
         'rforest__min_samples_leaf': [3],
         'rforest__min_samples_split': [8],
-        'rforest__n_estimators': [1200,1400]
+        'rforest__n_estimators': [1200]
     }
 
 
@@ -130,15 +130,6 @@ def generate_model(X_train, X_test, y_train, y_test,target_name,target_type):
 
     # Fit the grid search to the data
     grid_search.fit(X_train, y_train)
-
-
-
-    # best_params__ = {'bootstrap': True,
-    #                  'max_depth': 90,
-    #                  'max_features': 2,
-    #                  'min_samples_leaf': 3,
-    #                  'min_samples_split': 8,
-    #                  'n_estimators': 300}
 
     model = grid_search.best_estimator_
     print('best params:',grid_search.best_params_)
