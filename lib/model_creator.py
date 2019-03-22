@@ -1,8 +1,10 @@
 
 # coding: utf-8
 
-# In[32]:
+# In[168]:
 
+
+# coding: utf-8
 
 import connections as con
 import json
@@ -49,19 +51,17 @@ def load_data(target_name,target_type):
     connection.close()
     target.df.loc[target.df['label']==target_name ,'y'] = 1
 
-    # Remove sample bias
-    target_len = len(target.df.x.values)
-    control_len = len(control.df.x.values)
-    print('target length',target_len)
-    print('control length',control_len)
+    X_target = target.df.x.values
+    y_target = target.df.y.values
+    X_control = control_x
+    y_control = control_y
 
-    if target_len > control_len:
-        max_len = control_len -1
-    else:
-        max_len = target_len -1
-    print('max length',max_len)
-    X = np.concatenate((control_x[0:max_len], target.df.x.values[0:max_len]), axis=0)
-    y = np.concatenate((control_y[0:max_len], target.df.y.values[0:max_len]), axis=0)
+    # Each time this function is run, the data conforms closer to the target contrast distribution, at the cost of samples.
+    for i in range(2):
+        X_target,y_target,X_control,y_control = fit_training_data(X_target,y_target,X_control,y_control)
+
+    X = np.concatenate((X_control, X_target), axis=0)
+    y = np.concatenate((y_control, y_target), axis=0)
 
 
 
@@ -116,7 +116,7 @@ def generate_model(X_train, X_test, y_train, y_test,target_name,target_type):
 
     # Create the parameter grid based on the results of random search
     param_grid = {
-        'pca__n_components': [0.87],
+        'pca__n_components': [0.87,0.89,0.91,0.93,0.95,0.97,0.99],
         'rforest__bootstrap': [True],
         'rforest__max_depth': [110],
         'rforest__max_features': [0.3],
@@ -126,10 +126,19 @@ def generate_model(X_train, X_test, y_train, y_test,target_name,target_type):
     }
 
 
-    grid_search = GridSearchCV(pipeline, param_grid = param_grid,cv = 2, n_jobs = 6, verbose = 2)
+    grid_search = GridSearchCV(pipeline, param_grid = param_grid,cv = 2, n_jobs = 4, verbose = 2)
 
     # Fit the grid search to the data
     grid_search.fit(X_train, y_train)
+
+
+
+    # best_params__ = {'bootstrap': True,
+    #                  'max_depth': 90,
+    #                  'max_features': 2,
+    #                  'min_samples_leaf': 3,
+    #                  'min_samples_split': 8,
+    #                  'n_estimators': 300}
 
     model = grid_search.best_estimator_
     print('best params:',grid_search.best_params_)
@@ -161,52 +170,141 @@ def start_model(target_name,target_type):
     generate_model(X_train, X_test, y_train, y_test,target_name,target_type)
 
 
-# In[33]:
+# In[169]:
 
 
-#X,y = load_data()
+
+def generate_X_stats(X,X_control):
+
+    from scipy import stats
+
+    square_size = 30
+    X_morph = []
+    for i in range(len(X)):
+
+        hsl_features = np.zeros([1,3])
+        img =  X[i].reshape(int(len(X[i]) / (square_size*3)),int(len(X[i]) / (square_size*3)),3 ).astype('uint8')
+        # Get stats for hue, contrast, saturation
+        hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+        # Convert to float64 for higher precision stat descriptions
+        hsv = hsv.reshape(int(len(X[i]) / 3),3 ).astype('float32')
+        val_std = np.std(hsv, axis=0)[2] # Value std_dev
+        X_morph.append(val_std)
+
+    X_morph = np.array(X_morph)
+
+    square_size = 30
+    X_morph_control = []
+    for i in range(len(X_control)):
+
+        hsl_features = np.zeros([1,3])
+        img =  X_control[i].reshape(int(len(X_control[i]) / (square_size*3)),int(len(X_control[i]) / (square_size*3)),3 ).astype('uint8')
+        # Get stats for hue, contrast, saturation
+        hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+        # Convert to float64 for higher precision stat descriptions
+        hsv = hsv.reshape(int(len(X_control[i]) / 3),3 ).astype('float32')
+        val_std = np.std(hsv, axis=0)[2] # Value std_dev
+
+        X_morph_control.append(val_std)
+
+    X_morph_control = np.array(X_morph_control)
+
+    return X_morph,X_morph_control
 
 
-# In[34]:
+# In[170]:
 
 
-#X_train, X_test, y_train, y_test = test_split(X,y)
+def generate_bin_sizes(sample_length):
+
+    from scipy.stats import truncnorm
+    def get_truncated_normal(mean=50, sd=20, low=0, upp=100):
+        return truncnorm(
+            (low - mean) / sd, (upp - mean) / sd, loc=mean, scale=sd)
+
+    norm_dist = get_truncated_normal(mean=50, sd=20, low=0, upp=100)
+    res = 1000000
+    norm_dist_shape = norm_dist.rvs(res)
+
+    # Set bin sizes - eg (bin_sizes[0] means between 0-4, bin_sizes[5] means between 5-9, etc..)
+    bin_sizes ={}
+    bin_count = {}
+    for i in range(0,130,5):
+        bin_sizes[i] = int(len(norm_dist_shape[(norm_dist_shape >= i) & (norm_dist_shape < (i+5))]) / res * sample_length)
+        bin_count[i] = 0
+    return bin_sizes, bin_count
 
 
-# In[35]:
+def conform_x_to_dist(X,bin_sizes,bin_count):
+
+    X_bool = []
+
+    for val in X:
+        yep=False
+        for i in range(0,130,5):
+            if (val >= i) & (val < (i+5)) :
+                if bin_count[i] < bin_sizes[i]:
+                    yep= True
+                    bin_count[i]+=1
+                    X_bool.append(True)
+                else:
+                    yep= True
+                    X_bool.append(False)
+        if yep==False:
+            print(val)
+
+    return np.array(X_bool)
+
+def fit_training_data(X,y,X_control,y_control):
+
+    # Get hsv stats for training sets
+    X_morph,X_morph_control = generate_X_stats(X,X_control)
+
+    # Resize training sets to reflect normally distributed contrast complexity.
+    X_morph_bin_sizes,X_morph_bin_count = generate_bin_sizes(len(X_morph))
+    X_bool = conform_x_to_dist(X_morph,X_morph_bin_sizes,X_morph_bin_count)
+    X = X[X_bool==True]
+    y = y[X_bool==True]
+
+    X_morph_control_bin_sizes,X_morph_control_bin_count = generate_bin_sizes(len(X_morph))
+    X_bool_control = conform_x_to_dist(X_morph_control,X_morph_control_bin_sizes,X_morph_control_bin_count)
+    X_control = X_control[X_bool_control==True]
+    y_control = y_control[X_bool_control==True]
+
+    return X,y,X_control,y_control
 
 
-#generate_model(X_train, X_test, y_train, y_test)
+
+# In[167]:
+
+
+# import seaborn as sns
+# sns.distplot(X_morph[X_bool])
+# sns.distplot(X_morph_control[X_bool_control])
 
 
 # In[ ]:
 
 
-'''
-10x10
-best params: {
-'rforest__bootstrap': True,
-'rforest__max_depth': 110,
-'rforest__max_features': 2,
-'rforest__min_samples_leaf': 3,
-'rforest__min_samples_split': 8,
-'rforest__n_estimators': 300}
-
-'''
+grayscale
+{'pca__n_components': 0.93,
+ 'rforest__bootstrap': True,
+ 'rforest__max_depth': 110,
+ 'rforest__max_features': 0.3,
+ 'rforest__min_samples_leaf': 3,
+ 'rforest__min_samples_split': 8,
+ 'rforest__n_estimators': 1200}
 
 
 # In[ ]:
 
 
-'''
-25x25
-best params: {'pca__n_components': 0.89,
-              'rforest__bootstrap': True,
-              'rforest__max_depth': 110,
-              'rforest__max_features': 0.3,
-              'rforest__min_samples_leaf': 3,
-              'rforest__min_samples_split': 8,
-              'rforest__n_estimators': 1500}
+color
 
-
-'''
+{'pca__n_components': 0.87,
+ 'rforest__bootstrap': True,
+ 'rforest__max_depth': 110,
+ 'rforest__max_features': 0.3,
+ 'rforest__min_samples_leaf': 3,
+ 'rforest__min_samples_split': 8,
+ 'rforest__n_estimators': 1200}
