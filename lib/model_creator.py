@@ -58,7 +58,10 @@ def load_data(target_name,target_type):
 
     # Each time this function is run, the data conforms closer to the target contrast distribution, at the cost of samples.
     for i in range(2):
-        X_target,y_target,X_control,y_control = fit_training_data(X_target,y_target,X_control,y_control)
+        X_target,y_target,X_control,y_control = fit_training_data(X_target,y_target,X_control,y_control,target_type)
+        print('fit_training_data() loop {}'.format((i+1)))
+        print('X_target len',len(X_target))
+        print('X_control len',len(X_control))
 
     X = np.concatenate((X_control, X_target), axis=0)
     y = np.concatenate((y_control, y_target), axis=0)
@@ -174,38 +177,62 @@ def start_model(target_name,target_type):
 
 
 
-def generate_X_stats(X,X_control):
+def generate_X_stats(X,X_control,target_type):
+
+
+    print(X.shape)
+    print(X_control.shape)
+
+    if target_type== 'grayscale':
+        pixel_dimensions = 1
+        square_size = 45
+    else:
+        pixel_dimensions = 3
+        square_size = 30
 
     from scipy import stats
 
-    square_size = 30
+
     X_morph = []
     for i in range(len(X)):
 
-        hsl_features = np.zeros([1,3])
-        img =  X[i].reshape(int(len(X[i]) / (square_size*3)),int(len(X[i]) / (square_size*3)),3 ).astype('uint8')
-        # Get stats for hue, contrast, saturation
-        hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-        # Convert to float64 for higher precision stat descriptions
-        hsv = hsv.reshape(int(len(X[i]) / 3),3 ).astype('float32')
-        val_std = np.std(hsv, axis=0)[2] # Value std_dev
-        X_morph.append(val_std)
+
+
+        hsl_features = np.zeros([1,pixel_dimensions])
+        img =  X[i].reshape(int(len(X[i]) / (square_size*pixel_dimensions)),int(len(X[i]) / (square_size*pixel_dimensions)),pixel_dimensions ).astype('uint8')
+
+        # Get stats for contrast
+        if target_type== 'grayscale':
+            val_std = np.std(img, axis=0)[0] # Value std_dev
+            X_morph.append(val_std)
+        else:
+            hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+
+            # Convert to float64 for higher precision stat descriptions
+            hsv = hsv.reshape(int(len(X[i]) / pixel_dimensions),pixel_dimensions ).astype('float32')
+            val_std = np.std(hsv, axis=0)[2] # Value std_dev
+            X_morph.append(val_std)
 
     X_morph = np.array(X_morph)
 
-    square_size = 30
+
     X_morph_control = []
     for i in range(len(X_control)):
 
-        hsl_features = np.zeros([1,3])
-        img =  X_control[i].reshape(int(len(X_control[i]) / (square_size*3)),int(len(X_control[i]) / (square_size*3)),3 ).astype('uint8')
-        # Get stats for hue, contrast, saturation
-        hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-        # Convert to float64 for higher precision stat descriptions
-        hsv = hsv.reshape(int(len(X_control[i]) / 3),3 ).astype('float32')
-        val_std = np.std(hsv, axis=0)[2] # Value std_dev
+        hsl_features = np.zeros([1,pixel_dimensions])
+        img =  X_control[i].reshape(int(len(X_control[i]) / (square_size*pixel_dimensions)),int(len(X_control[i]) / (square_size*pixel_dimensions)),pixel_dimensions ).astype('uint8')
 
-        X_morph_control.append(val_std)
+        # Get stats for contrast
+        if target_type== 'grayscale':
+            val_std = np.std(img, axis=0)[0] # Value std_dev
+            X_morph_control.append(val_std)
+        else:
+            hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+
+            # Convert to float64 for higher precision stat descriptions
+            hsv = hsv.reshape(int(len(X_control[i]) / pixel_dimensions),pixel_dimensions ).astype('float32')
+            val_std = np.std(hsv, axis=0)[2] # Value std_dev
+            X_morph_control.append(val_std)
 
     X_morph_control = np.array(X_morph_control)
 
@@ -255,10 +282,10 @@ def conform_x_to_dist(X,bin_sizes,bin_count):
 
     return np.array(X_bool)
 
-def fit_training_data(X,y,X_control,y_control):
+def fit_training_data(X,y,X_control,y_control,target_type):
 
     # Get hsv stats for training sets
-    X_morph,X_morph_control = generate_X_stats(X,X_control)
+    X_morph,X_morph_control = generate_X_stats(X,X_control,target_type)
 
     # Resize training sets to reflect normally distributed contrast complexity.
     X_morph_bin_sizes,X_morph_bin_count = generate_bin_sizes(len(X_morph))
@@ -286,25 +313,25 @@ def fit_training_data(X,y,X_control,y_control):
 # In[ ]:
 
 
-grayscale
-{'pca__n_components': 0.93,
- 'rforest__bootstrap': True,
- 'rforest__max_depth': 110,
- 'rforest__max_features': 0.3,
- 'rforest__min_samples_leaf': 3,
- 'rforest__min_samples_split': 8,
- 'rforest__n_estimators': 1200}
+# grayscale
+# {'pca__n_components': 0.93,
+#  'rforest__bootstrap': True,
+#  'rforest__max_depth': 110,
+#  'rforest__max_features': 0.3,
+#  'rforest__min_samples_leaf': 3,
+#  'rforest__min_samples_split': 8,
+#  'rforest__n_estimators': 1200}
 
 
 # In[ ]:
 
 
-color
+# color
 
-{'pca__n_components': 0.87,
- 'rforest__bootstrap': True,
- 'rforest__max_depth': 110,
- 'rforest__max_features': 0.3,
- 'rforest__min_samples_leaf': 3,
- 'rforest__min_samples_split': 8,
- 'rforest__n_estimators': 1200}
+# {'pca__n_components': 0.87,
+#  'rforest__bootstrap': True,
+#  'rforest__max_depth': 110,
+#  'rforest__max_features': 0.3,
+#  'rforest__min_samples_leaf': 3,
+#  'rforest__min_samples_split': 8,
+#  'rforest__n_estimators': 1200}
