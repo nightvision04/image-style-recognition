@@ -190,7 +190,7 @@ class ImageParser:
         self.img = cv2.imread(filepath)
         self.generate_thumbnail(125,filepath)
 
-        self.img = cv2.cvtColor(self.img, cv2.COLOR_BGR2HSV)
+        #self.img = cv2.cvtColor(self.img, cv2.COLOR_BGR2HSV)
 
         self.convolution_strips({
                             'operation':'classify_image',
@@ -220,7 +220,7 @@ class ImageParser:
 
         # Framing Score
         img = cv2.imread(filepath)
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+        #img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
         self.convolution_strips({
                             'operation':'classify_image',

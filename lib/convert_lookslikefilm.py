@@ -43,7 +43,7 @@ for filename in os.listdir('../lookslikefilm/images'):
         filepath = "../lookslikefilm/images/"+filename
         print(filepath)
         img = cv2.imread(filepath)
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+        #img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
         if i==0:
             # Load once, then update
             imagedata = ImageData(img)
