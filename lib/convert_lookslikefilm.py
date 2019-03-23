@@ -49,7 +49,6 @@ for filename in os.listdir('../lookslikefilm/images'):
             imagedata = ImageData(img)
 
         i+=1
-        if i> 1900:
-            break
+        
 
         imagedata.import_training_data('lookslikefilm',filename,img)

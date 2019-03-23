@@ -54,7 +54,6 @@ for filename in os.listdir('../unsplash/images'):
             # Load once, then update
             imagedata = ImageData(img)
         i+=1
-        if i> 1900:
-            break
+        
 
         imagedata.import_training_data('unsplash',filename,img)

@@ -52,8 +52,5 @@ for filename in os.listdir('../imgur/images'):
             # Load once, then update
             imagedata = ImageData(img)
 
-        i+=1
-        if i> 1900:
-            break
 
         imagedata.import_training_data('imgur',filename,img)

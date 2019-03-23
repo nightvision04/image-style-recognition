@@ -10,10 +10,10 @@ if __name__ == "__main__":
 
     # # Flush history in db
     # t1 = time.time()
-    # import convert_flickr
-    # import convert_lookslikefilm
+    import convert_flickr
+    import convert_lookslikefilm
     # import convert_imgur
-    # import convert_unsplash
+    import convert_unsplash
     # t2 = time.time()
     # print("Took {} seconds for training data generation".format(t2-t1))
 
